@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JD Mart | Online Grocery</title>
-    <link rel="icon" href="logo-192.png" type="image/png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     
@@ -111,31 +110,17 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .splash-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-        /* === FREE DELIVERY ANIMATIONS (ADDED HERE) === */
+        /* FREE DELIVERY ANIMATIONS */
         @keyframes bounceIn {
             0% { transform: scale(0.8); opacity: 0; }
             50% { transform: scale(1.05); opacity: 1; }
             70% { transform: scale(0.95); }
             100% { transform: scale(1); }
         }
-        .bounce-msg {
-            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-            display: inline-block;
-        }
-        .shimmer-bar {
-            position: relative;
-            overflow: hidden;
-        }
-        .shimmer-bar::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
-            animation: shimmerGlow 1.5s infinite;
-        }
-        @keyframes shimmerGlow {
-            100% { left: 200%; }
-        }
+        .bounce-msg { animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; display: inline-block; }
+        .shimmer-bar { position: relative; overflow: hidden; }
+        .shimmer-bar::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent); animation: shimmerGlow 1.5s infinite; }
+        @keyframes shimmerGlow { 100% { left: 200%; } }
     </style>
 </head>
 <body>
@@ -285,7 +270,6 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         };
 
-        // FIXED SPLASH SCREEN LOGIC: अब यह 100% 2 सेकंड में हट जाएगा
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -342,8 +326,19 @@
                 if(!n || !p || !vName) return showToast("Please fill all details!");
                 const selectedOption = vSelect.options[vSelect.selectedIndex];
                 state.user = { name: n, phone: p, village: vName, fullAddress: addr, charge: Number(selectedOption.getAttribute('data-charge')||0), freeLimit: Number(selectedOption.getAttribute('data-limit')||0) };
+                
+                // Address saved in phone memory permanently
                 localStorage.setItem('jd_user', JSON.stringify(state.user));
-                document.getElementById('profile-modal').style.display = 'none'; User.updateUI(); App.updateCartUI(); showToast("Details Saved! ✅");
+                
+                document.getElementById('profile-modal').style.display = 'none'; 
+                User.updateUI(); 
+                App.updateCartUI(); 
+                showToast("Details Saved! ✅");
+                
+                // 💡 FIX 1: Auto-reopen cart if items exist
+                if(Object.keys(state.cart).length > 0) {
+                    setTimeout(() => { App.openCart(); }, 300);
+                }
             },
             updateUI: () => {
                 const btn = document.getElementById('addr-btn'), prev = document.getElementById('addr-preview');
@@ -373,15 +368,27 @@
                     }).join('');
                 });
             },
+            // 💡 FIX 2: Smooth Reorder logic
             reorder: (items) => {
+                let itemsAdded = 0;
                 items.forEach(i => {
                     const prod = state.products.find(p => p.title === i.title); 
-                    if(prod && prod.inStock !== false) App.add(prod.id, i.qty, true);
+                    if(prod && prod.inStock !== false) {
+                        if(!state.cart[prod.id]) state.cart[prod.id] = {qty: 0};
+                        state.cart[prod.id].qty += i.qty; // Adds previous quantity directly
+                        itemsAdded++;
+                    }
                 });
-                document.getElementById('orders-modal').style.display = 'none';
-                App.updateCartUI();
-                showToast("Items added to cart! 🛒");
-                App.openCart();
+                
+                if(itemsAdded > 0) {
+                    localStorage.setItem('jd_cart', JSON.stringify(state.cart)); 
+                    document.getElementById('orders-modal').style.display = 'none';
+                    App.updateCartUI();
+                    showToast("Items added to cart! 🛒");
+                    setTimeout(() => { App.openCart(); }, 300);
+                } else {
+                    showToast("Items are currently out of stock!");
+                }
             }
         };
 
@@ -557,6 +564,19 @@
                     customer: { name: state.user.name, phone: state.user.phone, address: `${state.user.village}, ${state.user.fullAddress}` },
                     items: items, total: state.grandTotal, deliveryCharge: state.deliveryCharge, paymentMethod: paymentMethod, status: 'Pending', timestamp: Date.now(), source: 'App'
                 });
+                
+                // 💡 FIX 3: TELEGRAM NOTIFICATION LOGIC
+                const tMsg = `🚨 *नया आर्डर प्राप्त हुआ!* 🚨\n\n👤 *नाम:* ${state.user.name}\n📞 *नंबर:* ${state.user.phone}\n📍 *पता:* ${state.user.village}, ${state.user.fullAddress}\n\n💰 *कुल बिल:* ₹${state.grandTotal}\n💳 *पेमेंट:* ${paymentMethod.toUpperCase()}\n\nतुरंत एडमिन पैनल चेक करें!`;
+                
+                const botToken = "8666404438:AAGO2wDGksB66B09q7AGjTXARInqB9EjjMk"; 
+const chatId = "1105786668"; 
+
+    
+
+                
+                if(botToken !== "YOUR_TELEGRAM_BOT_TOKEN") {
+                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(tMsg)}&parse_mode=Markdown`).catch(e=>console.log("Notif Error"));
+                }
 
                 showToast("Order Placed Successfully 🎉");
                 state.cart = {}; localStorage.removeItem('jd_cart');
