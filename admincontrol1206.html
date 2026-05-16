@@ -66,7 +66,7 @@
         .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 
         .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal { background: white; width: 500px; padding: 35px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: zoomIn 0.2s; }
+        .modal { background: white; width: 500px; padding: 35px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: zoomIn 0.2s; max-height:90vh; overflow-y:auto; }
         @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .cat-select-container { border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 15px; max-height: 150px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 8px; background: #fafafa; }
@@ -89,36 +89,31 @@
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* 📱 💡 MOBILE FIXES (SIDEBAR & LAYOUT CURE) 💡 📱 */
         .menu-toggle { display: none; background: transparent; border: none; font-size: 1.8rem; color: var(--primary); cursor: pointer; margin-right: 15px; padding: 5px; }
+        
+        .file-upload-box { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; background: #f8fafc; margin-bottom: 10px; cursor: pointer; position: relative; }
+        .file-upload-box:hover { border-color: var(--brand); background: #eff6ff; }
+        .file-upload-box input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .file-upload-box i { font-size: 2rem; color: #94a3b8; margin-bottom: 5px; }
+        .file-upload-box p { font-size: 0.85rem; color: #64748b; font-weight: 600; margin: 0; }
 
         @media (max-width: 768px) {
             .menu-toggle { display: block; }
-            
-            /* Sidebar Slide Effect */
             .sidebar { position: fixed; left: -320px; top: 0; bottom: 0; width: 280px; z-index: 9999; display: flex !important; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 10px 0 20px rgba(0,0,0,0.3); }
             .sidebar.open { left: 0; }
-            
             .main { padding: 0; width: 100%; }
             .content { padding: 15px; }
-            
-            /* Top Bar fix */
             .top-bar { height: auto; min-height: 70px; flex-wrap: wrap; padding: 15px; gap: 15px; }
             .top-btns { width: 100%; justify-content: space-between; }
-            
-            /* Dashboard Cards Grid Fix */
             .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
             .stat-box { padding: 15px; flex-direction: column; text-align: center; gap: 10px; }
             .stat-box .stat-icon { width: 45px; height: 45px; font-size: 1.2rem; }
             .stat-box h2 { font-size: 1.3rem; }
-            
-            /* POS Grid Fix */
             .pos-layout { flex-direction: column; height: calc(100vh - 140px); gap: 0; }
             .pos-products { flex: 1.5; border-radius: 0; border-bottom: 2px solid var(--border); order: 1; }
             .pos-cart { flex: 1; border-radius: 0; order: 2; border:none; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); }
             .pos-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); padding: 10px; gap: 10px; }
             .pos-item { padding: 10px 5px; } .pos-item img { height: 50px; }
-            
             .btn { padding: 8px 10px; font-size: 0.85rem; }
         }
     </style>
@@ -134,9 +129,7 @@
             <input id="adm-em" class="inp-log" placeholder="Email" value="tgangber19@gmail.com">
             <input id="adm-ps" class="inp-log" type="password" placeholder="Password">
             <button onclick="login()" id="log-btn" class="btn-log">Login Dashboard</button>
-            
             <button onclick="quickLogin()" id="bio-btn" class="btn-log" style="display:none; background:#10b981; margin-top:-10px;"><i class="fa fa-fingerprint"></i> Quick Login</button>
-            
             <p onclick="resetPass()" style="margin-top:15px; color:var(--brand); cursor:pointer; font-weight:600">Forgot Password?</p>
         </div>
     </div>
@@ -161,7 +154,6 @@
                 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
                 <h2 id="pg-title" style="font-weight:800; color:var(--primary); margin:0;">Dashboard</h2>
             </div>
-            
             <div class="top-btns" style="display:flex; gap:8px; flex-wrap:wrap; justify-content: flex-end;">
                 <button onclick="shareApp()" class="btn" style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe; padding:8px 12px;"><i class="fa fa-share-alt"></i> Share App</button>
                 <button onclick="togglePCMode()" id="pc-btn" class="btn" style="background:white; border:1px solid var(--border); padding:8px 12px;"><i class="fa fa-desktop"></i> PC Mode</button>
@@ -261,7 +253,16 @@
                 <input id="pm-pr" type="number" class="inp" placeholder="Price (₹)">
                 <input id="pm-order" type="number" class="inp" placeholder="Sort Order (e.g. 1, 2)">
             </div>
-            <input id="pm-img-link" class="inp" placeholder="Paste image link here (Direct link)">
+            
+            <label style="font-size:0.8rem; font-weight:700; color:#6b7280; display:block; margin-bottom:5px">Image (Choose File OR Paste Link)</label>
+            <div class="file-upload-box">
+                <i class="fa fa-cloud-upload-alt"></i>
+                <p id="pm-file-text">Click to Select Gallery Image</p>
+                <input type="file" id="pm-file" accept="image/*" onchange="document.getElementById('pm-file-text').innerText = this.files[0].name">
+            </div>
+            <p style="text-align:center; font-size:0.75rem; color:#94a3b8; margin:-5px 0 10px 0;">-- OR --</p>
+            <input id="pm-img-link" class="inp" placeholder="Paste existing image link here">
+
             <div style="margin-bottom:15px"><label style="font-size:0.8rem; font-weight:700; color:#6b7280; display:block; margin-bottom:5px">Select Categories</label><div id="pm-cat-box" class="cat-select-container"></div></div>
             <button onclick="saveProd()" id="pm-btn" class="btn btn-primary" style="width:100%">Save Product</button>
             <button onclick="closeModal('prod-mod')" class="btn" style="width:100%; margin-top:10px; border:1px solid #ddd">Cancel</button>
@@ -271,10 +272,19 @@
     <div id="cat-mod" class="modal-bg">
         <div class="modal">
             <h3 id="cm-head">Add Category</h3><br>
-            <input type="hidden" id="cm-id">
+            <input type="hidden" id="cm-id"><input type="hidden" id="cm-old">
             <input id="cm-nm" class="inp" placeholder="Category Name">
             <input id="cm-order" type="number" class="inp" placeholder="Sort Order (e.g. 1, 2, 3)">
-            <input id="cm-img-link" class="inp" placeholder="Category Image Link">
+            
+            <label style="font-size:0.8rem; font-weight:700; color:#6b7280; display:block; margin-bottom:5px">Category Image</label>
+            <div class="file-upload-box">
+                <i class="fa fa-cloud-upload-alt"></i>
+                <p id="cm-file-text">Click to Select Gallery Image</p>
+                <input type="file" id="cm-file" accept="image/*" onchange="document.getElementById('cm-file-text').innerText = this.files[0].name">
+            </div>
+            <p style="text-align:center; font-size:0.75rem; color:#94a3b8; margin:-5px 0 10px 0;">-- OR --</p>
+            <input id="cm-img-link" class="inp" placeholder="Paste existing image link here">
+
             <button onclick="saveCat()" id="cm-btn" class="btn btn-primary" style="width:100%">Save Category</button>
             <button onclick="closeModal('cat-mod')" class="btn" style="width:100%; margin-top:10px; border:1px solid #ddd">Cancel</button>
         </div>
@@ -283,7 +293,14 @@
     <div id="ban-mod" class="modal-bg">
         <div class="modal">
             <h3>Add Banner</h3><br>
-            <input id="bm-img-link" class="inp" placeholder="Paste image link here...">
+            <div class="file-upload-box">
+                <i class="fa fa-cloud-upload-alt"></i>
+                <p id="bm-file-text">Click to Select Banner Image</p>
+                <input type="file" id="bm-file" accept="image/*" onchange="document.getElementById('bm-file-text').innerText = this.files[0].name">
+            </div>
+            <p style="text-align:center; font-size:0.75rem; color:#94a3b8; margin:-5px 0 10px 0;">-- OR --</p>
+            <input id="bm-img-link" class="inp" placeholder="Paste existing image link here...">
+
             <button onclick="addBan()" id="bm-btn" class="btn btn-primary" style="width:100%">Add Banner</button>
             <button onclick="closeModal('ban-mod')" class="btn" style="width:100%; margin-top:10px; border:1px solid #ddd">Cancel</button>
         </div>
@@ -306,20 +323,23 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        // 💡 NEW: Firebase Storage Import
+        import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD8twwcxHsqPeaF45GdY14dSBMIv0UJNu4",
             databaseURL: "https://jdmart-d4409-default-rtdb.firebaseio.com",
             projectId: "jdmart-d4409",
+            storageBucket: "jdmart-d4409.appspot.com", // 💡 NEW: Storage Bucket Added
             appId: "1:931488167884:web:877fbd682404056cad0f69"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getDatabase(app);
+        const storage = getStorage(app); // 💡 NEW: Storage Initialized
         
         setPersistence(auth, browserLocalPersistence).catch((error) => console.log(error));
-        
-        const db = getDatabase(app);
 
         let allProds=[], posCart={}, ordersData=[], initLoad=true, allCats=[], prevOrderCount=0;
 
@@ -357,10 +377,7 @@
             const btn = document.getElementById('sound-btn'); btn.innerHTML = '<i class="fa fa-check"></i>'; btn.style.background = '#dcfce7'; btn.style.color = '#15803d'; btn.style.borderColor = '#86efac'; }).catch(e=>console.log(e));
         };
 
-        /* 💡 SIDEBAR TOGGLE FUNCTION 💡 */
-        window.toggleSidebar = () => {
-            document.getElementById('sidebar').classList.toggle('open');
-        };
+        window.toggleSidebar = () => { document.getElementById('sidebar').classList.toggle('open'); };
 
         window.login = async () => {
             const b=document.getElementById('log-btn'); b.innerText="Verifying...";
@@ -403,7 +420,34 @@
 
         const cleanUrl = (url) => url ? url.trim().replace(/['"]/g, '') : '';
 
-        // RENDERERS
+        // 💡 NEW: Smart Auto-Compressor 💡
+        const compressImage = (file, maxWidth = 800) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width; let height = img.height;
+                        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8)); // 0.8 means HD Quality with low file size
+                    };
+                };
+            });
+        };
+
+        // 💡 NEW: Upload to Firebase Storage 💡
+        const uploadToFirebase = async (dataUrl, folderName) => {
+            const storageRef = sRef(storage, `${folderName}/IMG_${Date.now()}.jpg`);
+            await uploadString(storageRef, dataUrl, 'data_url');
+            return await getDownloadURL(storageRef);
+        };
+
         function renderProds(list) {
             document.getElementById('prod-list').innerHTML=list.map(p => {
                 let cats=[]; if(Array.isArray(p.category)) cats=p.category; else if(p.category) cats=[p.category];
@@ -442,43 +486,94 @@
                 let pItems = v.items ? (Array.isArray(v.items)?v.items:Object.values(v.items)).map(i=>`${i.title}::${i.qty}::${i.price}`).join('||') : '';
                 let stColor='#e5e7eb'; if(v.status==='Placed') stColor='#fef3c7'; if(v.status==='Delivered') stColor='#dcfce7'; if(v.status==='Out') stColor='#e0e7ff';
                 
-                return `<tr><td><b>#${k.slice(-5).toUpperCase()}</b><br><small>${new Date(v.timestamp).toLocaleDateString()}</small></td><td><b>${name}</b><br><small>${phone}</small><br><small style="color:#6b7280">${addr}</small></td><td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${itemsStr}">${itemsStr}</div></td><td><b>₹${v.total}</b></td><td><select onchange="updStat('${k}',this.value)" style="border:1px solid #ddd;padding:6px;border-radius:6px;background:${stColor}"><option>${v.status}</option><option>Placed</option><option>Packed</option><option>Out</option><option>Delivered</option></select></td><td><div style="display:flex;gap:5px"><button onclick="printInv('${k}','${name}','${phone}','${addr}','${v.total}','${pItems.replace(/'/g, "")}')" class="btn btn-print"><i class="fa fa-print"></i></button><a href="${waLink}" target="_blank" class="btn btn-wa"><i class="fa-brands fa-whatsapp"></i></a></div></td></tr>`;
+                let safeName = encodeURIComponent(name); let safePhone = encodeURIComponent(phone); let safeAddr = encodeURIComponent(addr); let safeItems = encodeURIComponent(pItems);
+
+                return `<tr><td><b>#${k.slice(-5).toUpperCase()}</b><br><small>${new Date(v.timestamp).toLocaleDateString()}</small></td><td><b>${name}</b><br><small>${phone}</small><br><small style="color:#6b7280">${addr}</small></td><td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${itemsStr}">${itemsStr}</div></td><td><b>₹${v.total}</b></td><td><select onchange="updStat('${k}',this.value)" style="border:1px solid #ddd;padding:6px;border-radius:6px;background:${stColor}"><option>${v.status}</option><option>Placed</option><option>Packed</option><option>Out</option><option>Delivered</option></select></td><td><div style="display:flex;gap:5px"><button onclick="printOrderSafe('${k}','${safeName}','${safePhone}','${safeAddr}','${v.total}','${safeItems}')" class="btn btn-print"><i class="fa fa-print"></i></button><a href="${waLink}" target="_blank" class="btn btn-wa"><i class="fa-brands fa-whatsapp"></i></a></div></td></tr>`;
             }).join('');
         }
+        
+        window.printOrderSafe = (id, safeName, safePhone, safeAddr, total, safeItems) => { printInv(id, decodeURIComponent(safeName), decodeURIComponent(safePhone), decodeURIComponent(safeAddr), total, decodeURIComponent(safeItems)); };
 
+        // 💡 NEW: Smart Upload in Products 💡
         window.saveProd = async () => {
-            const b=document.getElementById('pm-btn'); b.innerText="Saving...";
-            const id=document.getElementById('pm-id').value, n=document.getElementById('pm-nm').value, p=document.getElementById('pm-pr').value, link=document.getElementById('pm-img-link').value, old=document.getElementById('pm-old').value, order=document.getElementById('pm-order').value;
+            const b=document.getElementById('pm-btn'); b.innerText="Saving..."; b.disabled = true;
+            const id=document.getElementById('pm-id').value, n=document.getElementById('pm-nm').value, p=document.getElementById('pm-pr').value, order=document.getElementById('pm-order').value;
+            const old=document.getElementById('pm-old').value, linkInput=document.getElementById('pm-img-link').value.trim();
+            const fileInput = document.getElementById('pm-file');
+            
             const selectedCats=Array.from(document.querySelectorAll('.cat-check:checked')).map(cb=>cb.value);
-            if(!n || !p || selectedCats.length===0) { b.innerText="Save Product"; return alert("Details missing"); }
+            if(!n || !p || selectedCats.length===0) { b.innerText="Save Product"; b.disabled=false; return alert("Details missing"); }
             
-            let cleanInput = link ? link.trim().replace(/['"]/g, '') : '';
-            let cleanOld = old ? old.trim().replace(/['"]/g, '') : '';
-            let u = cleanInput !== "" ? cleanInput : cleanOld;
-            
-            const d={title:n, price:Number(p), category:selectedCats, image:u, inStock:true, order:Number(order||0)};
-            if(id) await update(ref(db, `products/${id}`), d); else await push(ref(db, 'products'), d);
-            closeModal('prod-mod'); b.innerText="Save Product";
+            let finalImageUrl = old;
+            try {
+                if (fileInput.files.length > 0) {
+                    b.innerText="Uploading HD Image...";
+                    const compressedData = await compressImage(fileInput.files[0], 600);
+                    finalImageUrl = await uploadToFirebase(compressedData, 'products');
+                } else if (linkInput !== "") {
+                    finalImageUrl = linkInput.replace(/['"]/g, '');
+                }
+                
+                const d={title:n, price:Number(p), category:selectedCats, image:finalImageUrl, inStock:true, order:Number(order||0)};
+                if(id) await update(ref(db, `products/${id}`), d); else await push(ref(db, 'products'), d);
+                closeModal('prod-mod');
+            } catch(e) { alert("Upload Failed: " + e.message); }
+            b.innerText="Save Product"; b.disabled = false;
         }
+
         window.editProd = (id) => {
-            const p=allProds.find(x=>x.id===id); document.getElementById('pm-head').innerText="Edit Product"; document.getElementById('pm-id').value=id; document.getElementById('pm-nm').value=p.title; document.getElementById('pm-pr').value=p.price; document.getElementById('pm-old').value=p.image; document.getElementById('pm-img-link').value=p.image; document.getElementById('pm-order').value=p.order||0;
+            const p=allProds.find(x=>x.id===id); document.getElementById('pm-head').innerText="Edit Product"; document.getElementById('pm-id').value=id; document.getElementById('pm-nm').value=p.title; document.getElementById('pm-pr').value=p.price; document.getElementById('pm-old').value=p.image; document.getElementById('pm-img-link').value=p.image; document.getElementById('pm-order').value=p.order||0; document.getElementById('pm-file-text').innerText="Click to change Image"; document.getElementById('pm-file').value="";
             document.querySelectorAll('.cat-check').forEach(cb=>cb.checked=false);
             let pCats=Array.isArray(p.category)?p.category:[p.category]; pCats.forEach(c=>{ const cb=document.querySelector(`.cat-check[value="${c}"]`); if(cb) cb.checked=true; });
             openModal('prod-mod');
         }
 
+        // 💡 NEW: Smart Upload in Categories 💡
         window.saveCat = async () => {
-            const id=document.getElementById('cm-id').value, n=document.getElementById('cm-nm').value, link=document.getElementById('cm-img-link').value, order=document.getElementById('cm-order').value;
-            let cleanLink = link ? link.trim().replace(/['"]/g, '') : '';
-            if(!n || !cleanLink) return alert("Name/Image required");
-            if(id) await update(ref(db, `categories/${id}`), {name:n, image:cleanLink, order:Number(order||0)}); else await push(ref(db, 'categories'), {name:n, image:cleanLink, order:Number(order||0)});
-            closeModal('cat-mod');
+            const b=document.getElementById('cm-btn'); b.innerText="Saving..."; b.disabled = true;
+            const id=document.getElementById('cm-id').value, n=document.getElementById('cm-nm').value, order=document.getElementById('cm-order').value, old=document.getElementById('cm-old').value;
+            const linkInput=document.getElementById('cm-img-link').value.trim(), fileInput = document.getElementById('cm-file');
+            
+            if(!n) { b.innerText="Save Category"; b.disabled=false; return alert("Name required"); }
+            
+            let finalImageUrl = old;
+            try {
+                if (fileInput.files.length > 0) {
+                    b.innerText="Uploading...";
+                    const compressedData = await compressImage(fileInput.files[0], 400);
+                    finalImageUrl = await uploadToFirebase(compressedData, 'categories');
+                } else if (linkInput !== "") {
+                    finalImageUrl = linkInput.replace(/['"]/g, '');
+                }
+
+                if(id) await update(ref(db, `categories/${id}`), {name:n, image:finalImageUrl, order:Number(order||0)}); else await push(ref(db, 'categories'), {name:n, image:finalImageUrl, order:Number(order||0)});
+                closeModal('cat-mod');
+            } catch(e) { alert("Upload Failed: " + e.message); }
+            b.innerText="Save Category"; b.disabled = false;
         }
-        window.editCat = (id) => { const c = allCats.find(x=>x.id===id); document.getElementById('cm-head').innerText="Edit Category"; document.getElementById('cm-id').value=id; document.getElementById('cm-nm').value=c.name; document.getElementById('cm-img-link').value=c.image; document.getElementById('cm-order').value=c.order||0; openModal('cat-mod'); }
-        window.addCat = () => { document.getElementById('cm-head').innerText="Add Category"; document.getElementById('cm-id').value=''; document.getElementById('cm-nm').value=''; document.getElementById('cm-img-link').value=''; document.getElementById('cm-order').value=''; openModal('cat-mod'); }
-        window.addBan = async () => { const link=document.getElementById('bm-img-link').value; let cleanLink = link ? link.trim().replace(/['"]/g, '') : ''; if(cleanLink) { await push(ref(db, 'banners'), {image:cleanLink}); closeModal('ban-mod'); } }
+
+        window.editCat = (id) => { const c = allCats.find(x=>x.id===id); document.getElementById('cm-head').innerText="Edit Category"; document.getElementById('cm-id').value=id; document.getElementById('cm-nm').value=c.name; document.getElementById('cm-old').value=c.image; document.getElementById('cm-img-link').value=c.image; document.getElementById('cm-order').value=c.order||0; document.getElementById('cm-file-text').innerText="Click to change Image"; document.getElementById('cm-file').value=""; openModal('cat-mod'); }
+        window.addCat = () => { document.getElementById('cm-head').innerText="Add Category"; document.getElementById('cm-id').value=''; document.getElementById('cm-nm').value=''; document.getElementById('cm-old').value=''; document.getElementById('cm-img-link').value=''; document.getElementById('cm-order').value=''; document.getElementById('cm-file-text').innerText="Click to Select Gallery Image"; document.getElementById('cm-file').value=""; openModal('cat-mod'); }
+
+        // 💡 NEW: Smart Upload in Banners 💡
+        window.addBan = async () => { 
+            const b=document.getElementById('bm-btn'); b.innerText="Uploading..."; b.disabled=true;
+            const linkInput=document.getElementById('bm-img-link').value.trim(), fileInput = document.getElementById('bm-file');
+            
+            try {
+                if (fileInput.files.length > 0) {
+                    const compressedData = await compressImage(fileInput.files[0], 1200);
+                    let finalImageUrl = await uploadToFirebase(compressedData, 'banners');
+                    await push(ref(db, 'banners'), {image:finalImageUrl});
+                } else if (linkInput !== "") {
+                    await push(ref(db, 'banners'), {image:linkInput.replace(/['"]/g, '')});
+                }
+                closeModal('ban-mod');
+            } catch(e) { alert("Upload Failed: " + e.message); }
+            b.innerText="Add Banner"; b.disabled=false;
+        }
+
         window.addVil = () => { const n=document.getElementById('vm-nm').value, c=document.getElementById('vm-ch').value, f=document.getElementById('vm-fr').value; if(n){ push(ref(db, 'villages'), {name:n, charge:Number(c||0), freeLimit:Number(f||0)}); closeModal('vil-mod'); } }
-        
         window.del = (p) => { if(confirm("Delete?")) remove(ref(db, p)); }
         window.togStock = (id,s) => update(ref(db, `products/${id}`), {inStock:s});
         window.updStat = (id,s) => update(ref(db, `orders/${id}`), {status:s});
@@ -533,6 +628,8 @@
             const waLink = `https://wa.me/91${cleanPh}?text=${shareMessage}`;
 
             const w = window.open('', '', 'width=400,height=600');
+            if(!w) { alert("⚠️ Pop-up Blocked!\n\nआपके ब्राउज़र ने बिल को खुलने से रोक दिया है। कृपया अपने ब्राउज़र की सेटिंग (Address Bar) में जाकर 'Pop-ups' को Allow (अनुमति) करें और फिर से प्रिंट बटन दबाएं।"); return; }
+
             w.document.write(`<html><head><style>
                 @page { margin: 0; }
                 body { font-family: 'Courier New', Courier, monospace; width: 220px; margin: 0 auto; padding: 10px; font-size: 12px; color: #000; }
@@ -558,27 +655,22 @@
         window.filterGrid=(g,v)=>{document.querySelectorAll(`#${g} .prod-card`).forEach(b=>b.style.display=b.innerText.toLowerCase().includes(v.toLowerCase())?'block':'none')};
         window.filterPos=(v)=>renderPosGrid(allProds.filter(p=>p.title.toLowerCase().includes(v.toLowerCase())));
         
-        /* 💡 NAV FUNCTION FIXED FOR MOBILE 💡 */
         window.nav=(id)=>{
             document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.getElementById('pg-title').innerText=id.toUpperCase();
             document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
             event.currentTarget.classList.add('active');
-            
-            // अगर मोबाइल पर हैं तो क्लिक करते ही साइडबार बंद कर दो
-            if(window.innerWidth <= 768) {
-                document.getElementById('sidebar').classList.remove('open');
-            }
+            if(window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('open'); }
         };
 
         window.openModal=(id)=>{
-            if(id==='prod-mod' && document.getElementById('pm-id').value==="") { document.getElementById('pm-nm').value=''; document.getElementById('pm-pr').value=''; document.getElementById('pm-order').value=''; document.getElementById('pm-img-link').value=''; document.querySelectorAll('.cat-check').forEach(c=>c.checked=false); document.getElementById('pm-head').innerText="Add Product"; }
-            if(id==='cat-mod' && document.getElementById('cm-id').value==="") { document.getElementById('cm-nm').value=''; document.getElementById('cm-order').value=''; document.getElementById('cm-img-link').value=''; }
-            if(id==='ban-mod') { document.getElementById('bm-img-link').value=''; }
+            if(id==='prod-mod' && document.getElementById('pm-id').value==="") { document.getElementById('pm-nm').value=''; document.getElementById('pm-pr').value=''; document.getElementById('pm-order').value=''; document.getElementById('pm-img-link').value=''; document.getElementById('pm-file').value=''; document.getElementById('pm-file-text').innerText="Click to Select Gallery Image"; document.querySelectorAll('.cat-check').forEach(c=>c.checked=false); document.getElementById('pm-head').innerText="Add Product"; }
+            if(id==='cat-mod' && document.getElementById('cm-id').value==="") { document.getElementById('cm-nm').value=''; document.getElementById('cm-order').value=''; document.getElementById('cm-img-link').value=''; document.getElementById('cm-file').value=''; document.getElementById('cm-file-text').innerText="Click to Select Gallery Image"; }
+            if(id==='ban-mod') { document.getElementById('bm-img-link').value=''; document.getElementById('bm-file').value=''; document.getElementById('bm-file-text').innerText="Click to Select Banner Image"; }
             document.getElementById(id).style.display='flex';
         }
-        window.closeModal=(id)=>{document.getElementById(id).style.display='none'; if(id==='prod-mod'){document.getElementById('pm-id').value='';document.getElementById('pm-old').value='';} if(id==='cat-mod'){document.getElementById('cm-id').value='';}}
+        window.closeModal=(id)=>{document.getElementById(id).style.display='none'; if(id==='prod-mod'){document.getElementById('pm-id').value='';document.getElementById('pm-old').value='';} if(id==='cat-mod'){document.getElementById('cm-id').value=''; document.getElementById('cm-old').value='';}}
     </script>
 </body>
 </html>
