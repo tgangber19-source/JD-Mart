@@ -327,7 +327,6 @@
                 const selectedOption = vSelect.options[vSelect.selectedIndex];
                 state.user = { name: n, phone: p, village: vName, fullAddress: addr, charge: Number(selectedOption.getAttribute('data-charge')||0), freeLimit: Number(selectedOption.getAttribute('data-limit')||0) };
                 
-                // Address saved in phone memory permanently
                 localStorage.setItem('jd_user', JSON.stringify(state.user));
                 
                 document.getElementById('profile-modal').style.display = 'none'; 
@@ -335,7 +334,6 @@
                 App.updateCartUI(); 
                 showToast("Details Saved! ✅");
                 
-                // 💡 FIX 1: Auto-reopen cart if items exist
                 if(Object.keys(state.cart).length > 0) {
                     setTimeout(() => { App.openCart(); }, 300);
                 }
@@ -368,14 +366,13 @@
                     }).join('');
                 });
             },
-            // 💡 FIX 2: Smooth Reorder logic
             reorder: (items) => {
                 let itemsAdded = 0;
                 items.forEach(i => {
                     const prod = state.products.find(p => p.title === i.title); 
                     if(prod && prod.inStock !== false) {
                         if(!state.cart[prod.id]) state.cart[prod.id] = {qty: 0};
-                        state.cart[prod.id].qty += i.qty; // Adds previous quantity directly
+                        state.cart[prod.id].qty += i.qty;
                         itemsAdded++;
                     }
                 });
@@ -469,6 +466,8 @@
                     if(n>0) showToast("Added to Cart!");
                 }
             },
+            
+            // 💡 UPDATE: नया प्लस-माइनस बटन वाला कार्ट फंक्शन
             updateCartUI: () => {
                 const entries = Object.entries(state.cart);
                 let itemTotal = 0;
@@ -477,7 +476,21 @@
                     const p = state.products.find(x => x.id === id);
                     if(!p) return '';
                     itemTotal += p.price * i.qty;
-                    return `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #eee;"><div><div style="font-weight:700;">${p.title}</div><div style="font-size:0.85rem;color:#64748b;">₹${p.price} x ${i.qty}</div></div><div style="font-weight:700;">₹${p.price * i.qty}</div></div>`;
+                    return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px dashed #eee;">
+                        <div style="flex:1; padding-right:10px;">
+                            <div style="font-weight:700; font-size:0.95rem; line-height:1.2; margin-bottom:4px;">${p.title}</div>
+                            <div style="font-size:0.85rem; color:#64748b;">₹${p.price} / item</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:5px;">
+                            <div style="font-weight:800; color:var(--text-main);">₹${p.price * i.qty}</div>
+                            <div style="display:flex; align-items:center; background:#f1f5f9; border-radius:8px; padding:2px; border:1px solid #e2e8f0;">
+                                <button onclick="App.add('${id}', -1)" style="width:26px; height:26px; border:none; background:white; border-radius:6px; color:var(--danger); font-weight:bold; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.05);">-</button>
+                                <span style="width:28px; text-align:center; font-weight:800; font-size:0.9rem;">${i.qty}</span>
+                                <button onclick="App.add('${id}', 1)" style="width:26px; height:26px; border:none; background:var(--primary); border-radius:6px; color:white; font-weight:bold; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.1);">+</button>
+                            </div>
+                        </div>
+                    </div>`;
                 }).join('');
                 
                 let delCharge = 0;
@@ -487,7 +500,7 @@
                 const progText = document.getElementById('del-prog-text');
                 const progBar = document.getElementById('del-prog-bar');
 
-                let targetLimit = (state.user && state.user.freeLimit > 0) ? state.user.freeLimit : 500; 
+                let targetLimit = (state.user && state.user.freeLimit > 0) ? state.user.freeLimit : 599; 
                 let baseCharge = (state.user && state.user.charge) ? state.user.charge : 40;
 
                 if(progressBox) progressBox.style.display = 'block';
@@ -525,7 +538,7 @@
                     orderBtn.innerHTML = 'Please Add Address First';
                 }
 
-                document.getElementById('cart-items').innerHTML = html || '<div style="text-align:center;padding:20px;color:#94a3b8">कार्ट खाली है।</div>';
+                document.getElementById('cart-items').innerHTML = html || '<div style="text-align:center;padding:40px 20px;color:#94a3b8"><i class="fa-solid fa-basket-shopping" style="font-size:3rem; opacity:0.2; margin-bottom:10px;"></i><br>कार्ट खाली है।</div>';
                 document.getElementById('bill-sub').innerText = '₹' + itemTotal;
                 document.getElementById('bill-del').innerHTML = delText;
                 
@@ -550,7 +563,7 @@
                 setTimeout(() => { btn.innerText = originalText; btn.style.background = "var(--primary)"; }, 2000);
             },
 
-            placeOrder: async () => {
+                        placeOrder: async () => {
                 if(Object.keys(state.cart).length === 0) return showToast("Cart is empty!");
                 if(!state.user) { showToast("Add Address first!"); User.editAddress(); return; }
 
@@ -565,18 +578,19 @@
                     items: items, total: state.grandTotal, deliveryCharge: state.deliveryCharge, paymentMethod: paymentMethod, status: 'Pending', timestamp: Date.now(), source: 'App'
                 });
                 
-                // 💡 FIX 3: TELEGRAM NOTIFICATION LOGIC
-                const tMsg = `🚨 *नया आर्डर प्राप्त हुआ!* 🚨\n\n👤 *नाम:* ${state.user.name}\n📞 *नंबर:* ${state.user.phone}\n📍 *पता:* ${state.user.village}, ${state.user.fullAddress}\n\n💰 *कुल बिल:* ₹${state.grandTotal}\n💳 *पेमेंट:* ${paymentMethod.toUpperCase()}\n\nतुरंत एडमिन पैनल चेक करें!`;
+                // 💡 UPDATE: यहाँ पर आइटम की लिस्ट बनाने का कोड जोड़ा गया है
+                let itemListStr = '';
+                items.forEach((item, idx) => {
+                    itemListStr += `${idx + 1}. ${item.title} (${item.qty} x ₹${item.price}) = ₹${item.total}\n`;
+                });
+
+                // 💡 UPDATE: टेलीग्राम मैसेज में 'सामान की लिस्ट' जोड़ दी गई है
+                const tMsg = `🚨 *नया आर्डर प्राप्त हुआ!* 🚨\n\n👤 *नाम:* ${state.user.name}\n📞 *नंबर:* ${state.user.phone}\n📍 *पता:* ${state.user.village}, ${state.user.fullAddress}\n\n📦 *सामान की लिस्ट:*\n${itemListStr}\n🚚 *डिलीवरी चार्ज:* ₹${state.deliveryCharge}\n💰 *कुल बिल:* ₹${state.grandTotal}\n💳 *पेमेंट:* ${paymentMethod.toUpperCase()}`;
                 
                 const botToken = "8666404438:AAGO2wDGksB66B09q7AGjTXARInqB9EjjMk"; 
-const chatId = "1105786668"; 
-
-    
-
+                const chatId = "1105786668";     
                 
-                if(botToken !== "YOUR_TELEGRAM_BOT_TOKEN") {
-                    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(tMsg)}&parse_mode=Markdown`).catch(e=>console.log("Notif Error"));
-                }
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(tMsg)}&parse_mode=Markdown`).catch(e=>console.log("Notif Error"));
 
                 showToast("Order Placed Successfully 🎉");
                 state.cart = {}; localStorage.removeItem('jd_cart');
@@ -585,6 +599,7 @@ const chatId = "1105786668";
                 
                 btn.innerHTML = 'Confirm Order'; btn.disabled = false;
             }
+
         };
         App.init();
     </script>
