@@ -211,11 +211,14 @@
             </div>
 
             <div id="villages" class="section">
-                <div class="card-panel" style="max-width:800px">
+                <div class="card-panel">
                     <div class="panel-head"><h3>Villages & Delivery Charges</h3><button onclick="openModal('vil-mod')" class="btn btn-primary">+ Add Village</button></div>
-                    <table><thead><tr><th>Village Name</th><th>Delivery Charge (< Limit)</th><th>Free Above (Limit)</th><th>Action</th></tr></thead><tbody id="vil-body"></tbody></table>
+                    <div class="table-responsive">
+                        <table><thead><tr><th>Village Name</th><th>Delivery Charge (< Limit)</th><th>Free Above (Limit)</th><th>Action</th></tr></thead><tbody id="vil-body"></tbody></table>
+                    </div>
                 </div>
             </div>
+
 
             <div id="banners" class="section">
                 <div style="text-align:right; margin-bottom:20px"><button onclick="openModal('ban-mod')" class="btn btn-primary">+ Add Banner</button></div>
@@ -414,7 +417,7 @@
             
             onValue(ref(db, 'categories'), s => { const d=s.val()||{}; allCats = Object.entries(d).map(([k,v])=>({id:k,...v})).sort((a,b)=>(a.order||0)-(b.order||0)); renderCats(allCats); });
             onValue(ref(db, 'users'), s => { document.getElementById('d-usr').innerText=Object.keys(s.val()||{}).length; document.getElementById('usr-body').innerHTML=Object.values(s.val()||{}).map(u=>`<tr><td>${u.savedAddress?.name||'Guest'}</td><td>${u.email||'-'}</td><td>${u.savedAddress?.phone||'-'}</td><td>${u.savedAddress?.village||'-'}</td></tr>`).join(''); });
-          window.togVil = (id, s) => set(ref(db, `villages/${id}/isActive`), s);
+           window.togVil = (id, s) => set(ref(db, `villages/${id}/isActive`), s);
         onValue(ref(db, 'villages'), s => { 
             let html = '';
             const data = s.val() || {};
@@ -425,14 +428,15 @@
                     <td><b>${v.name}</b></td>
                     <td>₹${v.charge || 0}</td>
                     <td>Above ₹${v.freeLimit || 0}</td>
-                    <td style="display:flex; gap:15px; align-items:center;">
-                        <input type="checkbox" ${check} onchange="togVil('${k}', this.checked)" style="width:25px; height:25px; accent-color:#4f46e5; cursor:pointer;">
-                        <button onclick="del('villages/${k}')" class="btn-primary" style="background:#ef4444; padding:5px 10px;"><i class="fa fa-trash"></i></button>
+                    <td style="white-space: nowrap;">
+                        <input type="checkbox" ${check} onchange="togVil('${k}', this.checked)" style="width:22px; height:22px; accent-color:#4f46e5; vertical-align:middle; cursor:pointer; margin-right:15px;">
+                        <button onclick="del('villages/${k}')" class="btn-primary" style="background:#ef4444; padding:5px 10px; vertical-align:middle; border:none; border-radius:5px;"><i class="fa fa-trash" style="color:white;"></i></button>
                     </td>
                 </tr>`;
             });
             document.getElementById('vil-body').innerHTML = html;
         });
+
 
 
             onValue(ref(db, 'banners'), s => renderBanners(s.val()||{}));
