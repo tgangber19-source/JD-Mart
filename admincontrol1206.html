@@ -414,7 +414,14 @@
             
             onValue(ref(db, 'categories'), s => { const d=s.val()||{}; allCats = Object.entries(d).map(([k,v])=>({id:k,...v})).sort((a,b)=>(a.order||0)-(b.order||0)); renderCats(allCats); });
             onValue(ref(db, 'users'), s => { document.getElementById('d-usr').innerText=Object.keys(s.val()||{}).length; document.getElementById('usr-body').innerHTML=Object.values(s.val()||{}).map(u=>`<tr><td>${u.savedAddress?.name||'Guest'}</td><td>${u.email||'-'}</td><td>${u.savedAddress?.phone||'-'}</td><td>${u.savedAddress?.village||'-'}</td></tr>`).join(''); });
-            onValue(ref(db, 'villages'), s => { document.getElementById('vil-body').innerHTML=Object.entries(s.val()||{}).map(([k,v])=>`<tr><td><b>${v.name}</b></td><td>₹${v.charge||0}</td><td>Above ₹${v.freeLimit||0}</td><td><button onclick="del('villages/${k}')" class="btn-primary" style="background:#ef4444; padding:5px 10px"><i class="fa fa-trash"></i></button></td></tr>`).join(''); });
+                    window.togVil = (id,s) => update(ref(db, `villages/${id}`), {isActive:s});
+       onValue(ref(db, 'villages'), s => { 
+            document.getElementById('vil-body').innerHTML=Object.entries(s.val()||{}).map(([k,v])=>{ 
+                let isAct = v.isActive !== false; 
+                return `<tr><td><b>${v.name}</b></td><td>₹${v.charge||0}</td><td>Above ₹${v.freeLimit||0}</td><td><div style="display:flex;gap:10px;align-items:center"><label class="switch"><input type="checkbox" ${isAct?'checked':''} onchange="togVil('${k}',this.checked)"><span class="slider"></span></label><button onclick="del('villages/${k}')" class="btn-primary" style="background:#ef4444; padding:5px 10px"><i class="fa fa-trash"></i></button></div></td></tr>`
+            }).join(''); 
+        });
+
             onValue(ref(db, 'banners'), s => renderBanners(s.val()||{}));
         }
 

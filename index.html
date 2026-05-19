@@ -22,8 +22,8 @@
         .profile-btn { width: 40px; height: 40px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: pointer; transition: 0.2s; }
         .install-btn { background: #e0e7ff; color: var(--primary); padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; border: none; cursor: pointer; display: none; margin-right: 10px; }
         
-        #toast { position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; z-index: 2000; transition: 0.3s; box-shadow: 0 10px 15px rgba(0,0,0,0.2); pointer-events: none; opacity: 0; }
-        #toast.show { bottom: 30px; opacity: 1; }
+        #toast { position: fixed; top: -50px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; z-index: 2000; transition: 0.3s; box-shadow: 0 10px 15px rgba(0,0,0,0.2); pointer-events: none; opacity: 0; }
+        #toast.show { top: 30px; opacity: 1; }
 
         .float-wa { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; background: var(--whatsapp); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(37,211,102,0.3); z-index: 80; cursor: pointer; transition: 0.2s; }
         .float-wa:active { transform: scale(0.9); }
@@ -302,10 +302,21 @@
 
         window.User = {
             init: () => {
-                onValue(ref(db, 'villages'), s => {
-                    const data = s.val(); state.villages = data ? Object.values(data) : [];
-                    document.getElementById('u-village').innerHTML = `<option value="">Select Village</option>` + state.villages.map(v => `<option value="${v.name}" data-charge="${v.charge}" data-limit="${v.freeLimit}">${v.name}</option>`).join('');
+                                onValue(ref(db, 'villages'), s => {
+                    const data = s.val() || {}; 
+                    state.villages = data;
+                    
+                    // 🚨 UPDATE: सिर्फ चालू (ON) गाँव दिखाने का कोड
+                    let html = '<option value="" disabled selected>अपना गाँव चुनें</option>';
+                    Object.values(data).forEach(v => {
+                        if (v.isActive !== false) { // अगर गाँव OFF नहीं है, तभी लिस्ट में दिखेगा
+                            html += `<option value="${v.name}">${v.name}</option>`;
+                        }
+                    });
+                    document.getElementById('u-village').innerHTML = html;
                 });
+
+
                 User.updateUI();
             },
             openMenu: () => {
@@ -324,6 +335,14 @@
             save: () => {
                 const n = document.getElementById('u-name').value.trim(), p = document.getElementById('u-phone').value.trim(), vSelect = document.getElementById('u-village'), vName = vSelect.value, addr = document.getElementById('u-addr').value.trim();
                 if(!n || !p || !vName) return showToast("Please fill all details!");
+                                // 🚨 फेक नंबर रोकने के लिए सख्त चेकिंग
+                const phoneRegex = /^[6-9]\d{9}$/; 
+                if(!phoneRegex.test(p)) {
+                    document.getElementById('u-phone').style.border = "2px solid red";
+                    return showToast("⚠️ कृपया सही 10-अंकों का मोबाइल नंबर डालें!");
+                }
+                document.getElementById('u-phone').style.border = "1px solid #e5e7eb";
+
                 const selectedOption = vSelect.options[vSelect.selectedIndex];
                 state.user = { name: n, phone: p, village: vName, fullAddress: addr, charge: Number(selectedOption.getAttribute('data-charge')||0), freeLimit: Number(selectedOption.getAttribute('data-limit')||0) };
                 
