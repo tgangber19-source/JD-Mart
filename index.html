@@ -133,9 +133,7 @@
 
     <div id="toast">Message here</div>
 
-    <div class="float-wa" onclick="App.directWhatsApp()">
-        <i class="fa-brands fa-whatsapp"></i>
-    </div>
+   
 
     <div id="dashboard-modal" class="modal-overlay">
         <div class="modal-box">
@@ -175,8 +173,11 @@
     <header class="header">
         <div class="top-row">
             <div class="brand"><i class="fa-solid fa-basket-shopping"></i> JD Mart</div>
-            <div style="display:flex; align-items:center;">
-                <button id="install-btn" class="install-btn">App <i class="fa-solid fa-download"></i></button>
+            <div style="display:flex; align-items:center; gap: 8px;">
+                <button id="install-btn" class="install-btn" style="margin:0;">App <i class="fa-solid fa-download"></i></button>
+                
+                <div class="profile-btn" onclick="App.directWhatsApp()" style="background:#dcfce7; color:#16a34a; font-size:1.3rem;"><i class="fa-brands fa-whatsapp"></i></div>
+                
                 <div class="profile-btn" onclick="User.openMenu()"><i class="fa-solid fa-user"></i></div>
             </div>
         </div>
@@ -186,15 +187,11 @@
         </div>
     </header>
 
+
     <div id="banner-container" style="padding: 20px 20px 15px; min-height: 180px;">
         <div class="skeleton" style="width: 100%; height: 160px; border-radius: 16px;"></div>
     </div>
 
-    <div class="wa-box" onclick="App.directWhatsApp()">
-        <div class="wa-icon"><i class="fa-brands fa-whatsapp"></i></div>
-        <div class="wa-text"><h3>Send List on WhatsApp</h3><p>Jaldi order karne ke liye list likh kar bhejein.</p></div>
-        <i class="fa-solid fa-chevron-right" style="margin-left: auto; color: #14532d;"></i>
-    </div>
 
     <div class="cat-area"><div class="section-title"><span>Categories</span></div><div id="cat-list" class="cat-scroll"></div></div>
     <div class="section-title"><span id="active-cat-name">Fresh Items</span></div>
@@ -582,9 +579,15 @@
                 setTimeout(() => { btn.innerText = originalText; btn.style.background = "var(--primary)"; }, 2000);
             },
 
-                        placeOrder: async () => {
+                                                placeOrder: async () => {
                 if(Object.keys(state.cart).length === 0) return showToast("Cart is empty!");
                 if(!state.user) { showToast("Add Address first!"); User.editAddress(); return; }
+
+                // 🚨 1. सिर्फ ₹200 की मिनिमम लिमिट का लॉक 
+                if (state.grandTotal < 200) {
+                    let kamHai = 200 - state.grandTotal;
+                    return showToast(`⚠️ कम से कम ₹200 का ऑर्डर करें! (कार्ट में ₹${kamHai} का सामान और जोड़ें)`);
+                }
 
                 const paymentMethod = document.getElementById('payment-method').value;
                 const items = Object.entries(state.cart).map(([id, i]) => { const p = state.products.find(x => x.id === id); return { title: p.title, price: p.price, qty: i.qty, total: p.price * i.qty }; });
@@ -597,13 +600,11 @@
                     items: items, total: state.grandTotal, deliveryCharge: state.deliveryCharge, paymentMethod: paymentMethod, status: 'Pending', timestamp: Date.now(), source: 'App'
                 });
                 
-                // 💡 UPDATE: यहाँ पर आइटम की लिस्ट बनाने का कोड जोड़ा गया है
                 let itemListStr = '';
                 items.forEach((item, idx) => {
                     itemListStr += `${idx + 1}. ${item.title} (${item.qty} x ₹${item.price}) = ₹${item.total}\n`;
                 });
 
-                // 💡 UPDATE: टेलीग्राम मैसेज में 'सामान की लिस्ट' जोड़ दी गई है
                 const tMsg = `🚨 *नया आर्डर प्राप्त हुआ!* 🚨\n\n👤 *नाम:* ${state.user.name}\n📞 *नंबर:* ${state.user.phone}\n📍 *पता:* ${state.user.village}, ${state.user.fullAddress}\n\n📦 *सामान की लिस्ट:*\n${itemListStr}\n🚚 *डिलीवरी चार्ज:* ₹${state.deliveryCharge}\n💰 *कुल बिल:* ₹${state.grandTotal}\n💳 *पेमेंट:* ${paymentMethod.toUpperCase()}`;
                 
                 const botToken = "8666404438:AAGO2wDGksB66B09q7AGjTXARInqB9EjjMk"; 
@@ -611,13 +612,42 @@
                 
                 fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(tMsg)}&parse_mode=Markdown`).catch(e=>console.log("Notif Error"));
 
-                showToast("Order Placed Successfully 🎉");
+                // 🔊 🔔 NEW: Flipkart/Blinkit जैसी आर्डर सक्सेस टोन बजाना
+                try {
+                    const orderSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'); 
+                    orderSound.volume = 1.0;
+                    orderSound.play();
+                } catch(audioErr) { console.log("Sound play blocked by browser"); }
+
+                // 🌟 2. शानदार फुल-ग्रीन सक्सेस एनिमेशन 
+                const successDiv = document.createElement('div');
+                successDiv.innerHTML = `
+                    <div style="position:fixed; inset:0; background:#16a34a; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; animation: fadeIn 0.3s ease;">
+                        <div style="width:120px; height:120px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                            <i class="fa-solid fa-check" style="font-size:4rem; color:#16a34a;"></i>
+                        </div>
+                        <h1 style="font-size:2.2rem; font-weight:800; margin:0; text-align:center; animation: slideUp 0.5s ease 0.2s both;">ऑर्डर कन्फर्म!</h1>
+                        <p style="font-size:1.1rem; opacity:0.9; margin-top:10px; text-align:center; animation: slideUp 0.5s ease 0.3s both;">JD Mart से शॉपिंग करने के लिए धन्यवाद</p>
+                    </div>
+                    <style>
+                        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                        @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+                        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+                    </style>
+                `;
+                document.body.appendChild(successDiv);
+                
+                // 3 सेकंड बाद एनिमेशन अपने आप गायब हो जाएगा
+                setTimeout(() => { successDiv.remove(); }, 3000);
+
                 state.cart = {}; localStorage.removeItem('jd_cart');
                 document.getElementById('cart-modal').style.display = 'none';
                 App.updateCartUI(); window.scrollTo({ top: 0, behavior: 'smooth' });
                 
                 btn.innerHTML = 'Confirm Order'; btn.disabled = false;
             }
+
+
 
         };
         App.init();
