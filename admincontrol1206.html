@@ -10,7 +10,7 @@
     
     <style>
         :root { --primary: #111827; --brand: #4f46e5; --success: #10b981; --danger: #ef4444; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --border: #e5e7eb; --radius: 12px; --sidebar-w: 270px; --whatsapp: #25D366; }
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; font-family: 'Manrope', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -43,6 +43,13 @@
         .pos-item { border: 1px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; padding: 15px 10px; transition: 0.2s; background: white; }
         .pos-item:hover { border-color: var(--brand); background: #eef2ff; transform: translateY(-2px); }
         .pos-item img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 10px; }
+
+        /* POS Cart Buttons UI */
+        .qty-btn { width: 32px; height: 32px; border-radius: 8px; border: none; font-weight: bold; font-size: 1.2rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: 0.1s; }
+        .qty-btn:active { transform: scale(0.9); }
+        .qty-btn.minus { background: #fee2e2; color: #dc2626; }
+        .qty-btn.plus { background: #dcfce7; color: #15803d; }
+        .qty-val { font-weight: 800; font-size: 1.1rem; width: 25px; text-align: center; display: inline-block; }
 
         /* COMMON ELEMENTS */
         .card-panel { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 25px; }
@@ -143,7 +150,7 @@
         <div class="nav-item" onclick="nav('cats')"><i class="fa fa-th-large"></i> Categories</div>
         <div class="nav-item" onclick="nav('villages')"><i class="fa fa-map-marker-alt"></i> Villages</div>
         <div class="nav-item" onclick="nav('banners')"><i class="fa fa-images"></i> Banners</div>
-        <div class="nav-item" onclick="nav('notif-section')"><i class="fa fa-bullhorn"></i> Notifications</div>
+        <div class="nav-item" onclick="nav('notif-section')"><i class="fa fa-bullhorn"></i> Settings & Notif</div>
         <div class="nav-item" onclick="nav('users')"><i class="fa fa-users"></i> Customers</div>
         <div style="margin-top:auto"><div class="nav-item" onclick="logout()" style="color:#f87171; background:rgba(220,38,38,0.1)"><i class="fa fa-power-off"></i> Logout</div></div>
     </div>
@@ -188,10 +195,17 @@
                     <div class="pos-cart">
                         <div style="padding:15px; background:#f9fafb; display:flex; justify-content:space-between"><span>Bill</span> <span onclick="posCart={}; renderCart()" style="color:red; cursor:pointer">Clear</span></div>
                         <div id="pos-list" class="cart-list" style="flex:1; overflow-y:auto; padding:15px"></div>
-                        <div class="pos-cust-form" style="padding:15px; border-top:1px solid var(--border)">
-                            <div style="display:flex; gap:10px; margin-bottom:10px"><input id="pos-c-name" class="inp" placeholder="Name" style="margin:0"><input id="pos-c-phone" class="inp" placeholder="Phone" style="margin:0"></div>
-                            <input id="pos-c-addr" class="inp" placeholder="Address/Village" style="margin:0">
+                        
+                        <div class="pos-cust-form" style="padding:10px 15px; border-top:1px solid var(--border); background:#f8fafc;">
+                            <div onclick="const box = document.getElementById('pos-cust-inputs'); box.style.display = box.style.display === 'none' ? 'block' : 'none';" style="color: var(--brand); font-weight: 700; font-size: 0.85rem; cursor: pointer; text-align: center; padding: 5px; border: 1px dashed #cbd5e1; border-radius: 6px;">
+                                <i class="fa fa-user-plus"></i> + Add Customer Info (Optional)
+                            </div>
+                            <div id="pos-cust-inputs" style="display: none; margin-top: 15px;">
+                                <div style="display:flex; gap:10px; margin-bottom:10px;"><input id="pos-c-name" class="inp" placeholder="Name" style="margin:0"><input id="pos-c-phone" class="inp" placeholder="Phone" style="margin:0"></div>
+                                <input id="pos-c-addr" class="inp" placeholder="Address/Village" style="margin:0">
+                            </div>
                         </div>
+
                         <div style="padding:20px; border-top:1px solid var(--border)">
                             <div style="display:flex; justify-content:space-between; font-size:1.4rem; font-weight:800; margin-bottom:15px"><span>Total</span><span id="pos-total">₹0</span></div>
                             <div style="display:flex; gap:10px"><button onclick="printCartOnly()" class="btn btn-outline" style="flex:1">Estimate</button><button onclick="posCheckout()" class="btn btn-primary" style="flex:1">Bill & Save</button></div>
@@ -211,14 +225,11 @@
             </div>
 
             <div id="villages" class="section">
-                <div class="card-panel">
+                <div class="card-panel" style="max-width:800px">
                     <div class="panel-head"><h3>Villages & Delivery Charges</h3><button onclick="openModal('vil-mod')" class="btn btn-primary">+ Add Village</button></div>
-                    <div class="table-responsive">
-                        <table><thead><tr><th>Village Name</th><th>Delivery Charge (< Limit)</th><th>Free Above (Limit)</th><th>Action</th></tr></thead><tbody id="vil-body"></tbody></table>
-                    </div>
+                    <table><thead><tr><th>Village Name</th><th>Delivery Charge (< Limit)</th><th>Free Above (Limit)</th><th>Action</th></tr></thead><tbody id="vil-body"></tbody></table>
                 </div>
             </div>
-
 
             <div id="banners" class="section">
                 <div style="text-align:right; margin-bottom:20px"><button onclick="openModal('ban-mod')" class="btn btn-primary">+ Add Banner</button></div>
@@ -235,14 +246,64 @@
                         <button onclick="clearAppNotice()" class="btn" style="width:100%; margin-top:10px; background:#fee2e2; color:#dc2626;">Clear Notice ❌</button>
                         <hr style="margin: 30px 0; border: none; border-top: 1px dashed #ddd;">
                         <label class="inp-label">WhatsApp Broadcast (सभी कस्टमर्स को भेजें)</label>
-                        <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 10px;">नोट: यह उन कस्टमर्स को मैसेज भेजेगा जिन्होंने पहले ऐप से ऑर्डर किया है.</p>
                         <button onclick="broadcastWhatsApp()" class="btn btn-wa" style="width:100%;"><i class="fa-brands fa-whatsapp"></i> Start WhatsApp Broadcaster</button>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="max-width: 600px; margin-top: 25px;">
+                    <div class="panel-head"><h3>Live Delivery Settings (Global Offer)</h3></div>
+                    <div style="padding: 25px;">
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <label class="inp-label">Delivery Charge (₹)</label>
+                                <input id="global-del-charge" type="number" class="inp" placeholder="Eg. 40" style="margin:0;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="inp-label">Free Delivery Above (₹)</label>
+                                <input id="global-free-limit" type="number" class="inp" placeholder="Eg. 599" style="margin:0;">
+                            </div>
+                        </div>
+                        <button onclick="updateDeliveryConfig()" class="btn btn-primary" style="width:100%;">Save Delivery Configuration 🚚✅</button>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="max-width: 600px; margin-top: 25px;">
+                    <div class="panel-head"><h3>Bulk Category Price Update</h3></div>
+                    <div style="padding: 25px;">
+                        <label class="inp-label">कैटेगरी चुनें (Select Category)</label>
+                        <select id="bulk-cat-select" class="inp"></select>
+
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <label class="inp-label">क्या करना है? (Action)</label>
+                                <select id="bulk-price-action" class="inp" style="margin:0;">
+                                    <option value="increase">Price बढ़ाएं (+)</option>
+                                    <option value="decrease">Price घटाएं (-)</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="inp-label">कितने रुपये? (Amount in ₹)</label>
+                                <input id="bulk-price-amount" type="number" class="inp" placeholder="Eg. 5" style="margin:0;">
+                            </div>
+                        </div>
+                        <button onclick="updateCategoryPricesBulk()" class="btn btn-primary" style="width:100%; background: #ea580c;">Update All Products Price 💰⚡</button>
                     </div>
                 </div>
             </div>
 
             <div id="users" class="section">
                 <div class="card-panel"><div class="table-responsive"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Village</th></tr></thead><tbody id="usr-body"></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="receipt-mod" class="modal-bg" style="z-index: 99999;">
+        <div class="modal" style="width: 350px; padding: 25px; background: #f1f5f9; text-align: center;">
+            <div id="receipt-content" style="background: white; padding: 20px; border-radius: 12px; text-align: left; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="triggerPrint()" class="btn btn-primary" style="flex:1; padding:12px;"><i class="fa fa-print"></i> Print</button>
+                <a id="receipt-wa-btn" href="#" target="_blank" class="btn btn-wa" style="flex:1; padding:12px; text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> Send</a>
+                <button onclick="closeModal('receipt-mod')" class="btn" style="background:#fee2e2; color:#dc2626; padding:12px 15px;"><i class="fa fa-times"></i></button>
             </div>
         </div>
     </div>
@@ -326,21 +387,20 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
         import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-        // 💡 NEW: Firebase Storage Import
         import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD8twwcxHsqPeaF45GdY14dSBMIv0UJNu4",
             databaseURL: "https://jdmart-d4409-default-rtdb.firebaseio.com",
             projectId: "jdmart-d4409",
-            storageBucket: "jdmart-d4409.appspot.com", // 💡 NEW: Storage Bucket Added
+            storageBucket: "jdmart-d4409.appspot.com", 
             appId: "1:931488167884:web:877fbd682404056cad0f69"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        const storage = getStorage(app); // 💡 NEW: Storage Initialized
+        const storage = getStorage(app); 
         
         setPersistence(auth, browserLocalPersistence).catch((error) => console.log(error));
 
@@ -417,34 +477,21 @@
             
             onValue(ref(db, 'categories'), s => { const d=s.val()||{}; allCats = Object.entries(d).map(([k,v])=>({id:k,...v})).sort((a,b)=>(a.order||0)-(b.order||0)); renderCats(allCats); });
             onValue(ref(db, 'users'), s => { document.getElementById('d-usr').innerText=Object.keys(s.val()||{}).length; document.getElementById('usr-body').innerHTML=Object.values(s.val()||{}).map(u=>`<tr><td>${u.savedAddress?.name||'Guest'}</td><td>${u.email||'-'}</td><td>${u.savedAddress?.phone||'-'}</td><td>${u.savedAddress?.village||'-'}</td></tr>`).join(''); });
-           window.togVil = (id, s) => set(ref(db, `villages/${id}/isActive`), s);
-        onValue(ref(db, 'villages'), s => { 
-            let html = '';
-            const data = s.val() || {};
-            Object.entries(data).forEach(([k, v]) => {
-                let isAct = v.isActive !== false;
-                let check = isAct ? 'checked' : '';
-                html += `<tr>
-                    <td><b>${v.name}</b></td>
-                    <td>₹${v.charge || 0}</td>
-                    <td>Above ₹${v.freeLimit || 0}</td>
-                    <td style="white-space: nowrap;">
-                        <input type="checkbox" ${check} onchange="togVil('${k}', this.checked)" style="width:22px; height:22px; accent-color:#4f46e5; vertical-align:middle; cursor:pointer; margin-right:15px;">
-                        <button onclick="del('villages/${k}')" class="btn-primary" style="background:#ef4444; padding:5px 10px; vertical-align:middle; border:none; border-radius:5px;"><i class="fa fa-trash" style="color:white;"></i></button>
-                    </td>
-                </tr>`;
-            });
-            document.getElementById('vil-body').innerHTML = html;
-        });
-
-
-
+            onValue(ref(db, 'villages'), s => { document.getElementById('vil-body').innerHTML=Object.entries(s.val()||{}).map(([k,v])=>`<tr><td><b>${v.name}</b></td><td>₹${v.charge||0}</td><td>Above ₹${v.freeLimit||0}</td><td><button onclick="del('villages/${k}')" class="btn-primary" style="background:#ef4444; padding:5px 10px"><i class="fa fa-trash"></i></button></td></tr>`).join(''); });
+            
             onValue(ref(db, 'banners'), s => renderBanners(s.val()||{}));
+
+            onValue(ref(db, 'app_settings/delivery'), s => {
+                const data = s.val();
+                if(data) {
+                    document.getElementById('global-del-charge').value = data.defaultCharge || 40;
+                    document.getElementById('global-free-limit').value = data.freeLimit || 599;
+                }
+            });
         }
 
         const cleanUrl = (url) => url ? url.trim().replace(/['"]/g, '') : '';
 
-        // 💡 NEW: Smart Auto-Compressor 💡
         const compressImage = (file, maxWidth = 800) => {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -459,13 +506,12 @@
                         canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.8)); // 0.8 means HD Quality with low file size
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
                     };
                 };
             });
         };
 
-        // 💡 NEW: Upload to Firebase Storage 💡
         const uploadToFirebase = async (dataUrl, folderName) => {
             const storageRef = sRef(storage, `${folderName}/IMG_${Date.now()}.jpg`);
             await uploadString(storageRef, dataUrl, 'data_url');
@@ -485,7 +531,9 @@
                 let imgUrl = cleanUrl(c.image);
                 return `<div class="prod-card" style="text-align:center;padding:20px"><div style="position:absolute;top:10px;right:10px;display:flex;gap:5px"><button onclick="editCat('${c.id}')" style="background:#e0e7ff;color:#4338ca;border:none;width:25px;height:25px;border-radius:50%;cursor:pointer"><i class="fa fa-pen" style="font-size:0.7rem"></i></button><button onclick="del('categories/${c.id}')" style="background:#fee2e2;color:red;border:none;width:25px;height:25px;border-radius:50%;cursor:pointer"><i class="fa fa-times" style="font-size:0.7rem"></i></button></div><img src="${imgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400?text=No+Image'" style="width:100px;height:100px;object-fit:cover;margin-bottom:15px;border-radius:50%;border:3px solid #e0e7ff"><div style="font-weight:700">${c.name}</div><div style="font-size:0.75rem; color:#6b7280; margin-top:5px">Order: ${c.order||0}</div></div>`
             }).join('');
+            
             document.getElementById('pm-cat-box').innerHTML=list.map(c=>`<label class="cat-checkbox-label"><input type="checkbox" value="${c.name}" class="cat-check"><span>${c.name}</span></label>`).join('');
+            document.getElementById('bulk-cat-select').innerHTML = `<option value="" disabled selected>कैटेगरी चुनें</option>` + list.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
         }
 
         function renderBanners(d) { 
@@ -507,7 +555,7 @@
                 let waLink = `https://wa.me/91${cleanPh}?text=Namaste%20${encodeURIComponent(name)},%20Your%20Order%20%23${k.slice(-5)}%20(Amount:%20Rs.${v.total})%20is%20${v.status}.`;
 
                 let itemsStr = v.items ? (Array.isArray(v.items)?v.items:Object.values(v.items)).map(i=>`${i.title}(${i.qty})`).join(', ') : '';
-                let pItems = v.items ? (Array.isArray(v.items)?v.items:Object.values(v.items)).map(i=>`${i.title}::${i.qty}::${i.price}`).join('||') : '';
+                let pItems = v.items ? (Array.isArray(v.items)?v.items:Object.values(v.items)).map(i=>`${i.title}::${i.qty}::${v.price||i.price}`).join('||') : '';
                 let stColor='#e5e7eb'; if(v.status==='Placed') stColor='#fef3c7'; if(v.status==='Delivered') stColor='#dcfce7'; if(v.status==='Out') stColor='#e0e7ff';
                 
                 let safeName = encodeURIComponent(name); let safePhone = encodeURIComponent(phone); let safeAddr = encodeURIComponent(addr); let safeItems = encodeURIComponent(pItems);
@@ -518,7 +566,6 @@
         
         window.printOrderSafe = (id, safeName, safePhone, safeAddr, total, safeItems) => { printInv(id, decodeURIComponent(safeName), decodeURIComponent(safePhone), decodeURIComponent(safeAddr), total, decodeURIComponent(safeItems)); };
 
-        // 💡 NEW: Smart Upload in Products 💡
         window.saveProd = async () => {
             const b=document.getElementById('pm-btn'); b.innerText="Saving..."; b.disabled = true;
             const id=document.getElementById('pm-id').value, n=document.getElementById('pm-nm').value, p=document.getElementById('pm-pr').value, order=document.getElementById('pm-order').value;
@@ -552,7 +599,6 @@
             openModal('prod-mod');
         }
 
-        // 💡 NEW: Smart Upload in Categories 💡
         window.saveCat = async () => {
             const b=document.getElementById('cm-btn'); b.innerText="Saving..."; b.disabled = true;
             const id=document.getElementById('cm-id').value, n=document.getElementById('cm-nm').value, order=document.getElementById('cm-order').value, old=document.getElementById('cm-old').value;
@@ -579,7 +625,6 @@
         window.editCat = (id) => { const c = allCats.find(x=>x.id===id); document.getElementById('cm-head').innerText="Edit Category"; document.getElementById('cm-id').value=id; document.getElementById('cm-nm').value=c.name; document.getElementById('cm-old').value=c.image; document.getElementById('cm-img-link').value=c.image; document.getElementById('cm-order').value=c.order||0; document.getElementById('cm-file-text').innerText="Click to change Image"; document.getElementById('cm-file').value=""; openModal('cat-mod'); }
         window.addCat = () => { document.getElementById('cm-head').innerText="Add Category"; document.getElementById('cm-id').value=''; document.getElementById('cm-nm').value=''; document.getElementById('cm-old').value=''; document.getElementById('cm-img-link').value=''; document.getElementById('cm-order').value=''; document.getElementById('cm-file-text').innerText="Click to Select Gallery Image"; document.getElementById('cm-file').value=""; openModal('cat-mod'); }
 
-        // 💡 NEW: Smart Upload in Banners 💡
         window.addBan = async () => { 
             const b=document.getElementById('bm-btn'); b.innerText="Uploading..."; b.disabled=true;
             const linkInput=document.getElementById('bm-img-link').value.trim(), fileInput = document.getElementById('bm-file');
@@ -610,6 +655,7 @@
 
         window.updateAppNotice = () => { const text = document.getElementById('app-notice-text').value; if(!text) return alert("Enter some text!"); set(ref(db, 'app_settings/notice'), { message: text, timestamp: Date.now() }).then(() => alert("Notice updated on User App!")); };
         window.clearAppNotice = () => { set(ref(db, 'app_settings/notice'), { message: "", timestamp: Date.now() }).then(() => alert("Notice Cleared!")); document.getElementById('app-notice-text').value = ''; };
+        
         window.broadcastWhatsApp = () => {
             const msg = prompt("Enter message to send on WhatsApp:"); if(!msg) return;
             const uniquePhones = [...new Set(ordersData.map(o => o.val.customer?.phone).filter(p => p && p.length >= 10))];
@@ -618,31 +664,119 @@
             uniquePhones.forEach((ph, index) => { setTimeout(() => { window.open(`https://wa.me/91${ph.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(msg)}`, '_blank'); }, index * 2000); });
         };
 
+        // 💡 Global Delivery Configuration Logic
+        window.updateDeliveryConfig = () => {
+            const charge = document.getElementById('global-del-charge').value;
+            const limit = document.getElementById('global-free-limit').value;
+            if(!charge || !limit) return alert("कृपया दोनों बॉक्स भरें!");
+            
+            set(ref(db, 'app_settings/delivery'), {
+                defaultCharge: Number(charge),
+                freeLimit: Number(limit),
+                timestamp: Date.now()
+            }).then(() => alert("डिलीवरी चार्ज लाइव अपडेट हो गया है! 🚀"));
+        };
+
+        // 💡 Bulk Category Price Update Logic
+        window.updateCategoryPricesBulk = async () => {
+            const selectedCat = document.getElementById('bulk-cat-select').value;
+            const action = document.getElementById('bulk-price-action').value;
+            const amount = Number(document.getElementById('bulk-price-amount').value);
+
+            if (!selectedCat) return alert("कृपया पहले कैटेगरी चुनें!");
+            if (!amount || amount <= 0) return alert("कृपया सही अमाउंट (₹) डालें!");
+
+            const confirmMsg = `क्या आप सच में "${selectedCat}" कैटेगरी के सभी प्रोडक्ट्स का प्राइस ₹${amount} ${action === 'increase' ? 'बढ़ाना' : 'घटाना'} चाहते हैं?`;
+            if (!confirm(confirmMsg)) return;
+
+            let updatedCount = 0;
+            for (let p of allProds) {
+                let pCats = Array.isArray(p.category) ? p.category : [p.category];
+                if (pCats.includes(selectedCat)) {
+                    let newPrice = p.price;
+                    if (action === 'increase') newPrice += amount;
+                    else if (action === 'decrease') newPrice -= amount;
+
+                    if (newPrice < 0) newPrice = 0;
+                    await update(ref(db, `products/${p.id}`), { price: newPrice });
+                    updatedCount++;
+                }
+            }
+            alert(`सफलतापूर्वक! "${selectedCat}" के ${updatedCount} प्रोडक्ट्स के प्राइस अपडेट हो गए। 🎉`);
+            document.getElementById('bulk-price-amount').value = '';
+        };
+
+        // POS Fast UI Functions
         function renderPosGrid(list) { 
             document.getElementById('pos-grid').innerHTML=list.map(p=>{
                 let imgUrl = cleanUrl(p.image);
-                return `<div class="pos-item" onclick="addPos('${p.id}')"><img src="${imgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400?text=No+Image'"><div style="font-weight:700;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div><div style="color:var(--brand);font-weight:800">₹${p.price}</div></div>`
+                return `<div class="pos-item" id="pos-item-${p.id}" onclick="addPos('${p.id}')" style="transition:0.2s;"><img src="${imgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400?text=No+Image'"><div style="font-weight:700;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div><div style="color:var(--brand);font-weight:800">₹${p.price}</div></div>`
             }).join(''); 
         }
         
-        window.addPos = (id) => { if(posCart[id]) posCart[id].qty++; else posCart[id]={qty:1}; renderCart(); }
+        window.addPos = (id) => { 
+            if(posCart[id]) posCart[id].qty++; else posCart[id]={qty:1}; 
+            renderCart(); 
+            const searchBox = document.getElementById('pos-find');
+            if(searchBox.value !== '') { searchBox.value = ''; filterPos(''); }
+            searchBox.focus();
+            
+            const card = document.getElementById(`pos-item-${id}`);
+            if(card) {
+                const oldBg = card.style.background;
+                card.style.background = '#dcfce7'; card.style.transform = 'scale(0.92)';
+                setTimeout(() => { card.style.background = oldBg; card.style.transform = 'scale(1)'; }, 150);
+            }
+        }
+        
         window.modPos = (id,n) => { posCart[id].qty+=n; if(posCart[id].qty<=0) delete posCart[id]; renderCart(); }
-        function renderCart() { let t=0; document.getElementById('pos-list').innerHTML=Object.entries(posCart).map(([id,i])=>{ const p=allProds.find(x=>x.id===id); t+=p.price*i.qty; return `<div style="display:flex;justify-content:space-between;margin-bottom:10px;border-bottom:1px dashed #eee"><div><b>${p.title}</b><br><small>₹${p.price} x ${i.qty}</small></div><div><button onclick="modPos('${id}',-1)">-</button> <b>${i.qty}</b> <button onclick="modPos('${id}',1)">+</button></div></div>`; }).join(''); document.getElementById('pos-total').innerText="₹"+t; }
+        
+        function renderCart() { 
+            let t=0; 
+            document.getElementById('pos-list').innerHTML=Object.entries(posCart).map(([id,i])=>{ 
+                const p=allProds.find(x=>x.id===id); t+=p.price*i.qty; 
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #e5e7eb;background:white;">
+                    <div style="flex:1;">
+                        <b style="font-size:0.95rem;">${p.title}</b><br>
+                        <small style="color:#64748b;font-weight:600;">₹${p.price} <span style="font-size:0.7rem">x</span> ${i.qty}</small>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <button class="qty-btn minus" onclick="modPos('${id}',-1)">-</button> 
+                        <span class="qty-val">${i.qty}</span> 
+                        <button class="qty-btn plus" onclick="modPos('${id}',1)">+</button>
+                    </div>
+                </div>`; 
+            }).join(''); 
+            document.getElementById('pos-total').innerText="₹"+t; 
+        }
         
         window.printCartOnly = () => { if(Object.keys(posCart).length===0) return alert("Empty"); const pItems=Object.entries(posCart).map(([id,i])=>{const p=allProds.find(x=>x.id===id);return `${p.title}::${i.qty}::${p.price}`}).join('||'); printInv('EST', document.getElementById('pos-c-name').value||'Walk-in', document.getElementById('pos-c-phone').value||'-', document.getElementById('pos-c-addr').value||'Counter', document.getElementById('pos-total').innerText.replace('₹',''), pItems); }
+        
         window.posCheckout = () => { 
             if(Object.keys(posCart).length===0) return alert("Empty"); 
-            const t=document.getElementById('pos-total').innerText.replace('₹',''); const cName = document.getElementById('pos-c-name').value||'Walk-in'; const cPhone = document.getElementById('pos-c-phone').value||'-'; const cAddr = document.getElementById('pos-c-addr').value||'Store Counter';
-            const items=Object.entries(posCart).map(([id,i])=>{const p=allProds.find(x=>x.id===id);return {title:p.title,price:p.price,qty:i.qty}}); const pItems=Object.entries(posCart).map(([id,i])=>{const p=allProds.find(x=>x.id===id);return `${p.title}::${i.qty}::${p.price}`}).join('||'); 
+            const t=document.getElementById('pos-total').innerText.replace('₹',''); 
+            const cName = document.getElementById('pos-c-name').value||'Walk-in Customer'; 
+            const cPhone = document.getElementById('pos-c-phone').value||'-'; 
+            const cAddr = document.getElementById('pos-c-addr').value||'Store Counter';
+            
+            const items=Object.entries(posCart).map(([id,i])=>{const p=allProds.find(x=>x.id===id);return {title:p.title,price:p.price,qty:i.qty}}); 
+            const pItems=Object.entries(posCart).map(([id,i])=>{const p=allProds.find(x=>x.id===id);return `${p.title}::${i.qty}::${p.price}`}).join('||'); 
+            
             push(ref(db, 'orders'), {customer:{name:cName,phone:cPhone,address:cAddr},items,total:Number(t),status:'Delivered',paymentId:'CASH',timestamp:Date.now()}); 
-            printInv('POS', cName, cPhone, cAddr, t, pItems); posCart={}; renderCart(); document.getElementById('pos-c-name').value=''; 
+            printInv('POS', cName, cPhone, cAddr, t, pItems); 
+            
+            posCart={}; renderCart(); 
+            document.getElementById('pos-c-name').value=''; 
+            document.getElementById('pos-c-phone').value=''; 
+            document.getElementById('pos-c-addr').value='';
+            document.getElementById('pos-cust-inputs').style.display = 'none'; 
         }
 
         window.printInv = (id, name, phone, address, total, itemStr) => {
             let rows = '', sub = 0; let waItems = ''; 
             if (itemStr) itemStr.split('||').forEach(i => {
                 const [nm, q, p] = i.split('::'); const itemTotal = Number(q) * Number(p); sub += itemTotal;
-                rows += `<tr><td class="left" style="width:70%"><b>${nm}</b><br><small>${q} x ${p}</small></td><td class="right" style="width:30%; vertical-align:bottom">₹${itemTotal}</td></tr>`;
+                rows += `<tr><td style="text-align:left; padding:5px 0; border-bottom:1px dashed #ccc; font-size:12px;"><b>${nm}</b><br><small>${q} x ₹${p}</small></td><td style="text-align:right; padding:5px 0; border-bottom:1px dashed #ccc; font-size:12px; vertical-align:bottom">₹${itemTotal}</td></tr>`;
                 waItems += `• ${nm} (${q}x${p}=₹${itemTotal})\n`;
             });
 
@@ -651,29 +785,50 @@
             const cleanPh = String(phone).replace(/\D/g, '').slice(-10);
             const waLink = `https://wa.me/91${cleanPh}?text=${shareMessage}`;
 
-            const w = window.open('', '', 'width=400,height=600');
-            if(!w) { alert("⚠️ Pop-up Blocked!\n\nआपके ब्राउज़र ने बिल को खुलने से रोक दिया है। कृपया अपने ब्राउज़र की सेटिंग (Address Bar) में जाकर 'Pop-ups' को Allow (अनुमति) करें और फिर से प्रिंट बटन दबाएं।"); return; }
+            const billHtml = `
+                <div style="text-align:center; margin-bottom:10px;">
+                    <h3 style="margin:0; font-size:18px; color:#111827;">JD MART</h3>
+                    <p style="margin:2px 0; font-size:11px; color:#64748b;">Jhankar Kirana, Sohpur<br>Mob: 6268735944</p>
+                </div>
+                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <div style="font-size:12px; line-height:1.5; color:#000;">
+                    <b>ID:</b> #${id.slice(-5).toUpperCase()}<br>
+                    <b>Date:</b> ${new Date().toLocaleDateString()}<br>
+                    <b>Cust:</b> ${name}
+                </div>
+                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <table style="width:100%; border-collapse:collapse; color:#000;">${rows}</table>
+                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <div style="font-size:12px; line-height:1.6; color:#000;">
+                    <div style="display:flex; justify-content:space-between;"><span>Items:</span><span>₹${sub}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Delivery:</span><span>${delText}</span></div>
+                    <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:bold; margin-top:5px; border-top:1px dashed #000; padding-top:5px;"><span>TOTAL:</span><span>₹${total}</span></div>
+                </div>
+                <div style="text-align:center; font-size:11px; color:#64748b; margin-top:15px;">*** Thank You ***</div>
+            `;
 
-            w.document.write(`<html><head><style>
-                @page { margin: 0; }
-                body { font-family: 'Courier New', Courier, monospace; width: 220px; margin: 0 auto; padding: 10px; font-size: 12px; color: #000; }
-                .center { text-align: center; } .left { text-align: left; } .right { text-align: right; }
-                table { width: 100%; border-collapse: collapse; } td { padding: 3px 0; border-bottom: 0.5px dashed #ccc; }
-                .div { border-top: 1px dashed #000; margin: 8px 0; } .no-print { display: flex; gap: 5px; margin-bottom: 15px; }
-                .btn-s { padding: 8px; flex: 1; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-decoration: none; text-align: center; font-size: 10px; }
-                @media print { .no-print { display: none; } body { width: 220px !important; margin: 0 auto !important; } }
-            </style></head><body>
-            <div class="no-print"><button onclick="window.print()" class="btn-s" style="background:#4f46e5;color:white">PRINT</button><a href="${waLink}" target="_blank" class="btn-s" style="background:#25D366;color:white">WHATSAPP</a><button onclick="window.close()" class="btn-s" style="background:#ef4444;color:white">X</button></div>
-            <div class="center"><h3 style="margin:0">JD MART</h3><p style="margin:2px 0; font-size:10px;">Jhankar Kirana, Sohpur<br>Mob: 6268735944</p></div>
-            <div class="div"></div><div style="font-size:10px;">ID: #${id.slice(-5).toUpperCase()}<br>Date: ${new Date().toLocaleDateString()}<br>Cust: ${name}</div><div class="div"></div>
-            <table>${rows}</table><div class="div"></div>
-            <div style="display:flex;justify-content:space-between;"><span>Items:</span><span>₹${sub}</span></div>
-            <div style="display:flex;justify-content:space-between;"><span>Delivery:</span><span>${delText}</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:14px; margin-top:5px"><b>TOTAL:</b><b>₹${total}</b></div>
-            <div class="div"></div><div class="center" style="font-size:10px;">*** Thank You ***</div>
-            </body></html>`);
-            w.document.close();
+            document.getElementById('receipt-content').innerHTML = billHtml;
+            document.getElementById('receipt-wa-btn').href = waLink;
+            document.getElementById('receipt-mod').style.display = 'flex';
         }
+
+        window.triggerPrint = () => {
+            const printContent = document.getElementById('receipt-content').innerHTML;
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed'; iframe.style.right = '0'; iframe.style.bottom = '0';
+            iframe.style.width = '0'; iframe.style.height = '0'; iframe.style.border = '0';
+            document.body.appendChild(iframe);
+            
+            iframe.contentWindow.document.open();
+            iframe.contentWindow.document.write('<html><head><style>@page { margin: 0; } body { font-family: "Courier New", Courier, monospace; width: 220px; margin: 0 auto; padding: 10px; color: #000; } table { width: 100%; border-collapse: collapse; }</style></head><body>' + printContent + '</body></html>');
+            iframe.contentWindow.document.close();
+            
+            iframe.onload = () => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+                setTimeout(() => document.body.removeChild(iframe), 1000);
+            };
+        };
 
         window.searchTable=(t,v)=>{document.querySelectorAll(`#${t} tr`).forEach(r=>r.style.display=r.innerText.toLowerCase().includes(v.toLowerCase())?'':'none')};
         window.filterGrid=(g,v)=>{document.querySelectorAll(`#${g} .prod-card`).forEach(b=>b.style.display=b.innerText.toLowerCase().includes(v.toLowerCase())?'block':'none')};
@@ -694,7 +849,11 @@
             if(id==='ban-mod') { document.getElementById('bm-img-link').value=''; document.getElementById('bm-file').value=''; document.getElementById('bm-file-text').innerText="Click to Select Banner Image"; }
             document.getElementById(id).style.display='flex';
         }
-        window.closeModal=(id)=>{document.getElementById(id).style.display='none'; if(id==='prod-mod'){document.getElementById('pm-id').value='';document.getElementById('pm-old').value='';} if(id==='cat-mod'){document.getElementById('cm-id').value=''; document.getElementById('cm-old').value='';}}
+        window.closeModal=(id)=>{
+            document.getElementById(id).style.display='none'; 
+            if(id==='prod-mod'){document.getElementById('pm-id').value='';document.getElementById('pm-old').value='';} 
+            if(id==='cat-mod'){document.getElementById('cm-id').value=''; document.getElementById('cm-old').value='';}
+        }
     </script>
 </body>
 </html>
