@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JD Mart | Online Grocery</title>
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
     
@@ -11,116 +12,617 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        :root { --primary: #4f46e5; --bg: #f8fafc; --text-main: #0f172a; --text-light: #64748b; --white: #ffffff; --whatsapp: #25D366; --radius: 16px; --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text-main); padding-bottom: 100px; overflow-x: hidden; }
+        /* =========================================================
+           1. BASE STYLES & VARIABLES
+           ========================================================= */
+        :root { 
+            --primary: #4f46e5; 
+            --bg: #f8fafc; 
+            --text-main: #0f172a; 
+            --text-light: #64748b; 
+            --white: #ffffff; 
+            --whatsapp: #25D366; 
+            --radius: 16px; 
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
+        }
         
-        /* HEADER & TOAST & FLOATING WA */
-        .header { background: var(--white); padding: 15px 20px; position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow); }
-        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .brand { font-size: 1.4rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-        .profile-btn { width: 40px; height: 40px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: pointer; transition: 0.2s; }
-        .install-btn { background: #e0e7ff; color: var(--primary); padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; border: none; cursor: pointer; display: none; margin-right: 10px; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+        }
         
-        #toast { position: fixed; top: -50px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; z-index: 2000; transition: 0.3s; box-shadow: 0 10px 15px rgba(0,0,0,0.2); pointer-events: none; opacity: 0; }
-        #toast.show { top: 30px; opacity: 1; }
-
-        .float-wa { position: fixed; bottom: 85px; right: 20px; width: 55px; height: 55px; background: var(--whatsapp); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 10px rgba(37,211,102,0.3); z-index: 80; cursor: pointer; transition: 0.2s; }
-        .float-wa:active { transform: scale(0.9); }
-
-        /* SEARCH & WHATSAPP BOX */
-        .search-container { position: relative; }
-        .search-input { width: 100%; padding: 14px 45px 14px 15px; background: #f1f5f9; border: 1px solid transparent; border-radius: 12px; font-size: 1rem; outline: none; transition: 0.3s; }
-        .search-input:focus { background: var(--white); border-color: var(--primary); }
-        .mic-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.2rem; cursor: pointer; }
-        .mic-active { color: #ef4444; animation: pulse 1s infinite; }
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            padding-bottom: 100px; 
+            overflow-x: hidden; 
+        }
         
-        .wa-box { margin: 0 20px 15px; background: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
-        .wa-box:active { transform: scale(0.98); }
-        .wa-icon { font-size: 2rem; color: var(--whatsapp); }
-        .wa-text h3 { margin: 0; font-size: 1rem; color: #14532d; }
-        .wa-text p { margin: 2px 0 0; font-size: 0.8rem; color: #166534; }
-
-        /* CATEGORIES */
-        .cat-area { padding: 0 20px 15px; }
-        .cat-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        .cat-scroll::-webkit-scrollbar { display: none; }
-        .cat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 75px; cursor: pointer; opacity: 0.7; transition: 0.3s; }
-        .cat-img { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0; padding: 2px; background: var(--white); transition: 0.3s; }
-        .cat-item.active { opacity: 1; }
-        .cat-item.active .cat-img { border: 3px solid var(--primary); transform: scale(1.1); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
-        .cat-item.active .cat-name { font-weight: 800; color: var(--primary); }
-        .cat-name { font-size: 0.8rem; font-weight: 600; text-align: center; }
-
-        /* PRODUCTS & SKELETONS */
-        .section-title { padding: 0 20px 10px; font-size: 1.1rem; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
-        .prod-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
-        .prod-card { background: var(--white); border-radius: var(--radius); overflow: hidden; border: 1px solid #e2e8f0; display: flex; flex-direction: column; position: relative; }
-        .badge-choice { position: absolute; top: 8px; left: 8px; background: linear-gradient(135deg, #f59e0b, #ea580c); color: white; font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; }
+        /* =========================================================
+           2. HEADER & SEARCH BAR
+           ========================================================= */
+        .header { 
+            background: var(--white); 
+            padding: 15px 20px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 50; 
+            box-shadow: var(--shadow); 
+        }
         
-        .prod-img-box { height: 130px; padding: 15px; display: flex; align-items: center; justify-content: center; }
-        .prod-img { max-width: 100%; max-height: 100%; object-fit: contain; transition: 0.3s; }
-        .prod-details { padding: 12px; flex: 1; display: flex; flex-direction: column; }
-        .prod-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .prod-price { font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-bottom: 10px; flex: 1; }
-        .add-btn { width: 100%; padding: 8px; background: var(--white); border: 1px solid var(--primary); color: var(--primary); border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .add-btn:active { background: var(--primary); color: white; }
-        .qty-control { display: flex; align-items: center; justify-content: space-between; background: var(--primary); color: var(--white); border-radius: 8px; padding: 5px; font-weight: 700; }
-        .qty-btn { width: 25px; text-align: center; cursor: pointer; font-size: 1.2rem; }
-
-        .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200%; animation: shimmer 1.5s infinite; }
-        .skel-card { border-radius: var(--radius); border: 1px solid #e2e8f0; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-        /* CART & MODALS */
-        .float-cart { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #1e293b; color: var(--white); padding: 15px 20px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transform: translateY(150%); transition: 0.3s; z-index: 90; cursor: pointer; }
-        .float-cart.show { transform: translateY(0); }
+        .top-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px; 
+        }
         
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
-        .modal-box { background: var(--white); width: 100%; max-width: 400px; padding: 25px; border-radius: 24px; animation: slideUp 0.3s ease; display:flex; flex-direction:column; max-height: 85vh; }
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .brand { 
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            color: var(--primary); 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
         
-        /* DASHBOARD STYLES */
-        .dash-header { display:flex; align-items:center; gap:15px; margin-bottom:20px; padding-bottom:15px; border-bottom:1px dashed #e2e8f0; }
-        .dash-avatar { width:60px; height:60px; background:#e0e7ff; color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; }
-        .dash-menu-btn { width:100%; padding:15px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; margin-bottom:10px; text-align:left; font-weight:600; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
-        .dash-menu-btn:active { background:#e2e8f0; }
+        .profile-btn { 
+            width: 40px; 
+            height: 40px; 
+            background: #f1f5f9; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: var(--primary); 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        
+        .install-btn { 
+            background: #e0e7ff; 
+            color: var(--primary); 
+            padding: 5px 10px; 
+            border-radius: 8px; 
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            border: none; 
+            cursor: pointer; 
+            display: none; 
+            margin-right: 10px; 
+        }
+        
+        .search-container { 
+            position: relative; 
+        }
+        
+        .search-input { 
+            width: 100%; 
+            padding: 14px 45px 14px 15px; 
+            background: #f1f5f9; 
+            border: 1px solid transparent; 
+            border-radius: 12px; 
+            font-size: 1rem; 
+            outline: none; 
+            transition: 0.3s; 
+        }
+        
+        .search-input:focus { 
+            background: var(--white); 
+            border-color: var(--primary); 
+        }
+        
+        .mic-btn { 
+            position: absolute; 
+            right: 15px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: var(--primary); 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+        }
+        
+        .mic-active { 
+            color: #ef4444; 
+            animation: pulse 1s infinite; 
+        }
 
-        /* ORDER HISTORY STYLES */
-        .order-card { background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:12px; margin-bottom:15px; }
-        .order-top { display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.85rem; color:var(--text-light); }
-        .order-status { padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700; }
-        .st-Pending { background:#fff7ed; color:#c2410c; }
-        .st-Delivered { background:#dcfce7; color:#15803d; }
+        /* =========================================================
+           3. TOAST NOTIFICATION & FLOATING WHATSAPP
+           ========================================================= */
+        #toast { 
+            position: fixed; 
+            top: -50px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: #1e293b; 
+            color: #fff; 
+            padding: 12px 24px; 
+            border-radius: 30px; 
+            font-weight: 600; 
+            font-size: 0.9rem; 
+            z-index: 2000; 
+            transition: 0.3s; 
+            box-shadow: 0 10px 15px rgba(0,0,0,0.2); 
+            pointer-events: none; 
+            opacity: 0; 
+        }
         
-        .inp-group { margin-bottom: 15px; }
+        #toast.show { 
+            top: 30px; 
+            opacity: 1; 
+        }
+
+        .float-wa { 
+            position: fixed; 
+            bottom: 85px; 
+            right: 20px; 
+            width: 55px; 
+            height: 55px; 
+            background: var(--whatsapp); 
+            color: white; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.8rem; 
+            box-shadow: 0 4px 10px rgba(37,211,102,0.3); 
+            z-index: 80; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        
+        .float-wa:active { 
+            transform: scale(0.9); 
+        }
+
+        /* =========================================================
+           4. CATEGORIES
+           ========================================================= */
+        .cat-area { 
+            padding: 0 20px 15px; 
+        }
+        
+        .cat-scroll { 
+            display: flex; 
+            gap: 15px; 
+            overflow-x: auto; 
+            padding-bottom: 5px; 
+            scrollbar-width: none; 
+        }
+        
+        .cat-scroll::-webkit-scrollbar { 
+            display: none; 
+        }
+        
+        .cat-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 8px; 
+            min-width: 75px; 
+            cursor: pointer; 
+            opacity: 0.7; 
+            transition: 0.3s; 
+        }
+        
+        .cat-img { 
+            width: 65px; 
+            height: 65px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 2px solid #e2e8f0; 
+            padding: 2px; 
+            background: var(--white); 
+            transition: 0.3s; 
+        }
+        
+        .cat-item.active { 
+            opacity: 1; 
+        }
+        
+        .cat-item.active .cat-img { 
+            border: 3px solid var(--primary); 
+            transform: scale(1.1); 
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); 
+        }
+        
+        .cat-item.active .cat-name { 
+            font-weight: 800; 
+            color: var(--primary); 
+        }
+        
+        .cat-name { 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            text-align: center; 
+        }
+
+        /* =========================================================
+           5. PRODUCTS GRID & CIRCULAR IMAGES
+           ========================================================= */
+        .section-title { 
+            padding: 0 20px 10px; 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
+        .prod-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px; 
+            padding: 0 20px; 
+        }
+        
+        .prod-card { 
+            background: var(--white); 
+            border-radius: var(--radius); 
+            overflow: hidden; 
+            border: 1px solid #e2e8f0; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+        }
+        
+        .badge-choice { 
+            position: absolute; 
+            top: 8px; 
+            left: 8px; 
+            background: linear-gradient(135deg, #f59e0b, #ea580c); 
+            color: white; 
+            font-size: 0.65rem; 
+            font-weight: 800; 
+            padding: 3px 8px; 
+            border-radius: 6px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            z-index: 10; 
+        }
+        
+        /* 🔥 Circular Product Images (Gol Dibba) 🔥 */
+        .prod-img-box { 
+            height: 140px; 
+            padding: 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        
+        .prod-img { 
+            width: 110px; 
+            height: 110px; 
+            object-fit: cover; 
+            border-radius: 50%; 
+            border: 3px solid #e0e7ff; 
+            transition: 0.3s; 
+        }
+        
+        .prod-details { 
+            padding: 12px; 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            text-align: center;
+        }
+        
+        .prod-title { 
+            font-size: 0.95rem; 
+            font-weight: 700; 
+            margin-bottom: 5px; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden; 
+        }
+        
+        .prod-price { 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            color: var(--text-main); 
+            margin-bottom: 10px; 
+            flex: 1; 
+        }
+        
+        .add-btn { 
+            width: 100%; 
+            padding: 8px; 
+            background: var(--white); 
+            border: 1px solid var(--primary); 
+            color: var(--primary); 
+            border-radius: 8px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        
+        .add-btn:active { 
+            background: var(--primary); 
+            color: white; 
+        }
+        
+        .qty-control { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: var(--primary); 
+            color: var(--white); 
+            border-radius: 8px; 
+            padding: 5px; 
+            font-weight: 700; 
+        }
+        
+        .qty-btn { 
+            width: 25px; 
+            text-align: center; 
+            cursor: pointer; 
+            font-size: 1.2rem; 
+        }
+
+        /* =========================================================
+           6. SKELETON LOADERS
+           ========================================================= */
+        .skeleton { 
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); 
+            background-size: 200%; 
+            animation: shimmer 1.5s infinite; 
+        }
+        
+        .skel-card { 
+            border-radius: var(--radius); 
+            border: 1px solid #e2e8f0; 
+            padding: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+        }
+        
+        @keyframes shimmer { 
+            0% { background-position: 200% 0; } 
+            100% { background-position: -200% 0; } 
+        }
+
+        /* =========================================================
+           7. MODALS, DASHBOARD & LOGIN
+           ========================================================= */
+        .float-cart { 
+            position: fixed; 
+            bottom: 20px; 
+            left: 20px; 
+            right: 20px; 
+            background: #1e293b; 
+            color: var(--white); 
+            padding: 15px 20px; 
+            border-radius: 16px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+            transform: translateY(150%); 
+            transition: 0.3s; 
+            z-index: 90; 
+            cursor: pointer; 
+        }
+        
+        .float-cart.show { 
+            transform: translateY(0); 
+        }
+        
+        .modal-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.6); 
+            z-index: 1000; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px; 
+            backdrop-filter: blur(4px); 
+        }
+        
+        .modal-box { 
+            background: var(--white); 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 25px; 
+            border-radius: 24px; 
+            animation: slideUp 0.3s ease; 
+            display: flex; 
+            flex-direction: column; 
+            max-height: 85vh; 
+            overflow-y: auto;
+        }
+        
+        @keyframes slideUp { 
+            from { transform: translateY(50px); opacity: 0; } 
+            to { transform: translateY(0); opacity: 1; } 
+        }
+        
+        .dash-header { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            margin-bottom: 20px; 
+            padding-bottom: 15px; 
+            border-bottom: 1px dashed #e2e8f0; 
+        }
+        
+        .dash-avatar { 
+            width: 60px; 
+            height: 60px; 
+            background: #e0e7ff; 
+            color: var(--primary); 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.5rem; 
+        }
+        
+        .dash-menu-btn { 
+            width: 100%; 
+            padding: 15px; 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            margin-bottom: 10px; 
+            text-align: left; 
+            font-weight: 600; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            cursor: pointer; 
+        }
+        
+        .dash-menu-btn:active { 
+            background: #e2e8f0; 
+        }
+
+        /* Order Cards */
+        .order-card { 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            padding: 15px; 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
+        }
+        
+        .order-top { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 10px; 
+            font-size: 0.85rem; 
+            color: var(--text-light); 
+        }
+        
+        .order-status { 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+        }
+        
+        .st-Pending { background: #fff7ed; color: #c2410c; }
+        .st-Delivered { background: #dcfce7; color: #15803d; }
+        
+        /* Inputs & Buttons */
+        .inp-group { margin-bottom: 15px; text-align: left; }
         .inp-label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 5px; color: var(--text-light); }
         .inp-field { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 1rem; outline: none; background: #f8fafc; }
-        .btn-full { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-outline { width: 100%; padding: 12px; background: transparent; border: 1px dashed var(--primary); color: var(--primary); border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .btn-full { 
+            width: 100%; 
+            padding: 15px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            transition: 0.3s; 
+        }
+        
+        .btn-outline { 
+            width: 100%; 
+            padding: 12px; 
+            background: transparent; 
+            border: 1px dashed var(--primary); 
+            color: var(--primary); 
+            border-radius: 12px; 
+            font-size: 1rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px; 
+        }
+        
         .bill-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
         .bill-total { border-top: 1px dashed #ddd; padding-top: 10px; margin-top: 10px; font-weight: 800; font-size: 1.1rem; display: flex; justify-content: space-between; color: var(--primary); }
 
-        /* SPLASH SCREEN (TEXT ONLY) */
-        #splash-screen { position: fixed; inset: 0; background: #ffffff; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s ease; }
-        .splash-text-logo { font-size: 3rem; font-weight: 900; color: var(--primary); letter-spacing: -1px; text-transform: uppercase; margin-bottom: 5px; animation: pulseText 1.5s infinite ease-in-out; }
-        .splash-subtitle { font-size: 0.85rem; font-weight: 800; color: #64748b; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 30px; }
-        .loader-spinner { width: 35px; height: 35px; border: 4px solid #f1f5f9; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes pulseText { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .splash-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-
-        /* FREE DELIVERY ANIMATIONS */
-        @keyframes bounceIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.05); opacity: 1; }
-            70% { transform: scale(0.95); }
-            100% { transform: scale(1); }
+        /* =========================================================
+           8. SPLASH SCREEN & PWA INSTALL BANNER
+           ========================================================= */
+        #splash-screen { 
+            position: fixed; 
+            inset: 0; 
+            background: #ffffff; 
+            z-index: 9999; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            transition: opacity 0.5s ease, visibility 0.5s ease; 
         }
-        .bounce-msg { animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; display: inline-block; }
-        .shimmer-bar { position: relative; overflow: hidden; }
-        .shimmer-bar::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent); animation: shimmerGlow 1.5s infinite; }
-        @keyframes shimmerGlow { 100% { left: 200%; } }
+        
+        .splash-text-logo { 
+            font-size: 3rem; 
+            font-weight: 900; 
+            color: var(--primary); 
+            letter-spacing: -1px; 
+            text-transform: uppercase; 
+            margin-bottom: 5px; 
+            animation: pulseText 1.5s infinite ease-in-out; 
+        }
+        
+        .splash-subtitle { 
+            font-size: 0.85rem; 
+            font-weight: 800; 
+            color: #64748b; 
+            letter-spacing: 1px; 
+            text-transform: uppercase; 
+            margin-bottom: 30px; 
+        }
+        
+        .loader-spinner { 
+            width: 35px; 
+            height: 35px; 
+            border: 4px solid #f1f5f9; 
+            border-top: 4px solid var(--primary); 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+        }
+        
+        @keyframes pulseText { 
+            0% { transform: scale(1); opacity: 1; } 
+            50% { transform: scale(1.05); opacity: 0.8; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        
+        .splash-hidden { 
+            opacity: 0; 
+            visibility: hidden; 
+            pointer-events: none; 
+        }
+
+        #install-banner { 
+            display: none; 
+            position: fixed; 
+            bottom: 85px; 
+            left: 15px; 
+            right: 15px; 
+            background: var(--primary); 
+            color: white; 
+            padding: 15px; 
+            border-radius: 16px; 
+            text-align: center; 
+            z-index: 9999; 
+            box-shadow: 0 10px 25px rgba(79,70,229,0.4); 
+            animation: slideUp 0.5s; 
+        }
     </style>
 </head>
 <body>
@@ -131,93 +633,193 @@
         <div class="loader-spinner"></div>
     </div>
 
+    <div id="install-banner">
+        <h3 style="margin-bottom: 5px;">📲 JD Mart App Install Karein</h3>
+        <p style="font-size: 0.85rem; margin-bottom: 15px; opacity: 0.9;">Fast ordering & Free Delivery!</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button onclick="document.getElementById('install-banner').style.display='none'" style="background: transparent; color: white; border: 1px solid white; padding: 8px 15px; border-radius: 8px;">Baad mein</button>
+            <button id="install-btn-pwa" style="background: white; color: var(--primary); border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold;">Install Now</button>
+        </div>
+    </div>
+
     <div id="toast">Message here</div>
 
-   
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-box" style="text-align: center;">
+            <div style="display:flex; justify-content:flex-end;">
+                <i class="fa-solid fa-xmark" onclick="document.getElementById('auth-modal').style.display='none'" style="font-size:1.5rem; padding:5px; cursor:pointer;"></i>
+            </div>
+            
+            <h2 id="auth-title" style="margin-bottom: 5px;">लॉगिन करें</h2>
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 20px;">अपने खाते में प्रवेश करें</p>
+            
+            <div id="register-fields" style="display: none; text-align: left;">
+                <div class="inp-group">
+                    <input id="auth-name" class="inp-field" placeholder="आपका पूरा नाम (Name)">
+                </div>
+                <div class="inp-group">
+                    <input id="auth-phone" type="tel" class="inp-field" placeholder="मोबाइल नंबर (Phone)">
+                </div>
+                <div class="inp-group">
+                    <select id="auth-village" class="inp-field" style="background:white;">
+                        <option value="">गाँव चुनें (Loading...)</option>
+                    </select>
+                </div>
+                <div class="inp-group">
+                    <input id="auth-addr" class="inp-field" placeholder="घर का पता (Landmark)">
+                </div>
+            </div>
+
+            <div class="inp-group">
+                <input id="auth-email" type="email" class="inp-field" placeholder="ईमेल आईडी (Email)">
+            </div>
+            <div class="inp-group">
+                <input id="auth-pass" type="password" class="inp-field" placeholder="पासवर्ड (Password)">
+            </div>
+            
+            <button id="auth-btn" onclick="User.handleAuth()" class="btn-full">प्रवेश करें 🚀</button>
+            <p id="auth-toggle" onclick="User.toggleAuthMode()" style="margin-top: 15px; color: var(--primary); cursor: pointer; font-weight: 800;">नया अकाउंट बनाएं (Sign Up)</p>
+        </div>
+    </div>
 
     <div id="dashboard-modal" class="modal-overlay">
         <div class="modal-box">
-            <div style="display:flex; justify-content:flex-end;"><i class="fa-solid fa-xmark" onclick="document.getElementById('dashboard-modal').style.display='none'" style="font-size:1.5rem; padding:5px; cursor:pointer;"></i></div>
+            <div style="display:flex; justify-content:flex-end;">
+                <i class="fa-solid fa-xmark" onclick="document.getElementById('dashboard-modal').style.display='none'" style="font-size:1.5rem; padding:5px; cursor:pointer;"></i>
+            </div>
+            
             <div class="dash-header">
                 <div class="dash-avatar"><i class="fa-solid fa-user"></i></div>
-                <div><h2 id="dash-name">Guest</h2><p id="dash-phone" style="font-size:0.9rem; color:#64748b;">Login to view profile</p></div>
+                <div>
+                    <h2 id="dash-name">Guest</h2>
+                    <p id="dash-phone" style="font-size:0.9rem; color:#64748b;">Loading...</p>
+                </div>
             </div>
-            <button onclick="User.showOrders()" class="dash-menu-btn"><span><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary); width:25px;"></i> My Orders</span><i class="fa-solid fa-chevron-right" style="font-size:0.8rem; color:#cbd5e1;"></i></button>
-            <button onclick="User.editAddress()" class="dash-menu-btn"><span><i class="fa-solid fa-location-dot" style="color:var(--primary); width:25px;"></i> Delivery Address</span><i class="fa-solid fa-chevron-right" style="font-size:0.8rem; color:#cbd5e1;"></i></button>
-            <button onclick="App.directWhatsApp()" class="dash-menu-btn"><span><i class="fa-brands fa-whatsapp" style="color:var(--whatsapp); width:25px;"></i> Help & Support</span><i class="fa-solid fa-chevron-right" style="font-size:0.8rem; color:#cbd5e1;"></i></button>
+            
+            <button onclick="User.showOrders()" class="dash-menu-btn">
+                <span><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary); width:25px;"></i> My Orders</span>
+                <i class="fa-solid fa-chevron-right" style="font-size:0.8rem; color:#cbd5e1;"></i>
+            </button>
+            
+            <button onclick="User.editAddress()" class="dash-menu-btn">
+                <span><i class="fa-solid fa-location-dot" style="color:var(--primary); width:25px;"></i> Update Address</span>
+                <i class="fa-solid fa-chevron-right" style="font-size:0.8rem; color:#cbd5e1;"></i>
+            </button>
+            
+            <button onclick="App.directWhatsApp()" class="dash-menu-btn">
+                <span><i class="fa-brands fa-whatsapp" style="color:var(--whatsapp); width:25px;"></i> Help & Support</span>
+                <i class="fa-solid fa-chevron-right" style="font-size:0.8rem; color:#cbd5e1;"></i>
+            </button>
+
+            <button onclick="User.logout()" class="dash-menu-btn" style="color:#dc2626; background:#fee2e2; border-color:#fca5a5; margin-top:20px;">
+                <span><i class="fa-solid fa-power-off" style="width:25px;"></i> Logout</span>
+            </button>
         </div>
     </div>
 
     <div id="orders-modal" class="modal-overlay">
         <div class="modal-box" style="height: 80vh;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h2>My Orders</h2><i class="fa-solid fa-xmark" onclick="document.getElementById('orders-modal').style.display='none'" style="font-size:1.5rem; padding:5px; cursor:pointer;"></i>
+                <h2>My Orders</h2>
+                <i class="fa-solid fa-xmark" onclick="document.getElementById('orders-modal').style.display='none'" style="font-size:1.5rem; padding:5px; cursor:pointer;"></i>
             </div>
-            <div id="order-list" style="overflow-y:auto; flex:1;"><div style="text-align:center; padding:30px; color:#94a3b8;">Loading orders...</div></div>
+            <div id="order-list" style="overflow-y:auto; flex:1;">
+                <div style="text-align:center; padding:30px; color:#94a3b8;">Loading orders...</div>
+            </div>
         </div>
     </div>
 
     <div id="profile-modal" class="modal-overlay">
         <div class="modal-box" style="text-align: center;">
-            <div style="display:flex; justify-content:flex-end;"><i class="fa-solid fa-xmark" onclick="document.getElementById('profile-modal').style.display='none'" style="font-size:1.5rem; padding:5px; cursor:pointer;"></i></div>
+            <div style="display:flex; justify-content:flex-end;">
+                <i class="fa-solid fa-xmark" onclick="document.getElementById('profile-modal').style.display='none'" style="font-size:1.5rem; padding:5px; cursor:pointer;"></i>
+            </div>
+            
             <h2 style="margin-bottom: 5px;">Delivery Details</h2>
-            <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 20px;">Address batayein taki hum deliver kar sakein.</p>
-            <div class="inp-group" style="text-align: left;"><label class="inp-label">Name (नाम)</label><input id="u-name" class="inp-field" placeholder="Eg. Rahul Kumar"></div>
-            <div class="inp-group" style="text-align: left;"><label class="inp-label">Mobile (नंबर)</label><input id="u-phone" type="tel" class="inp-field" placeholder="Eg. 9876543210"></div>
-            <div class="inp-group" style="text-align: left;"><label class="inp-label">Select Village (गाँव चुनें)</label><select id="u-village" class="inp-field" style="background:white"><option value="">Loading villages...</option></select></div>
-            <div class="inp-group" style="text-align: left;"><label class="inp-label">House No / Landmark (घर का पता)</label><input id="u-addr" class="inp-field" placeholder="Near Temple, Ward 5..."></div>
-            <button onclick="User.save()" class="btn-full">Save Details 💾</button>
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 20px;">Update your delivery address</p>
+            
+            <div class="inp-group" style="text-align: left;">
+                <label class="inp-label">Name (नाम)</label>
+                <input id="u-name" class="inp-field" placeholder="Eg. Rahul Kumar">
+            </div>
+            
+            <div class="inp-group" style="text-align: left;">
+                <label class="inp-label">Mobile (नंबर)</label>
+                <input id="u-phone" type="tel" class="inp-field" placeholder="Eg. 9876543210">
+            </div>
+            
+            <div class="inp-group" style="text-align: left;">
+                <label class="inp-label">Select Village (गाँव चुनें)</label>
+                <select id="u-village" class="inp-field" style="background:white">
+                    <option value="">Loading villages...</option>
+                </select>
+            </div>
+            
+            <div class="inp-group" style="text-align: left;">
+                <label class="inp-label">House No / Landmark (घर का पता)</label>
+                <input id="u-addr" class="inp-field" placeholder="Near Temple, Ward 5...">
+            </div>
+            
+            <button onclick="User.saveAddress()" class="btn-full">Update Details 💾</button>
         </div>
     </div>
 
     <header class="header">
         <div class="top-row">
             <div class="brand"><i class="fa-solid fa-basket-shopping"></i> JD Mart</div>
+            
             <div style="display:flex; align-items:center; gap: 8px;">
                 <button id="install-btn" class="install-btn" style="margin:0;">App <i class="fa-solid fa-download"></i></button>
                 
-                <div class="profile-btn" onclick="App.directWhatsApp()" style="background:#dcfce7; color:#16a34a; font-size:1.3rem;"><i class="fa-brands fa-whatsapp"></i></div>
+                <div class="profile-btn" onclick="App.directWhatsApp()" style="background:#dcfce7; color:#16a34a; font-size:1.3rem;">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </div>
                 
-                <div class="profile-btn" onclick="User.openMenu()"><i class="fa-solid fa-user"></i></div>
+                <div class="profile-btn" onclick="User.openMenu()">
+                    <i class="fa-solid fa-user"></i>
+                </div>
             </div>
         </div>
+        
         <div class="search-container">
-            <input type="text" id="search" class="search-input" placeholder="Search items...">
+            <input type="text" id="search" class="search-input" placeholder="Search Aalu, Pyaj, Dal...">
             <i id="mic" class="fa-solid fa-microphone mic-btn"></i>
         </div>
     </header>
-
 
     <div id="banner-container" style="padding: 20px 20px 15px; min-height: 180px;">
         <div class="skeleton" style="width: 100%; height: 160px; border-radius: 16px;"></div>
     </div>
 
-
-    <div class="cat-area"><div class="section-title"><span>Categories</span></div><div id="cat-list" class="cat-scroll"></div></div>
-    <div class="section-title"><span id="active-cat-name">Fresh Items</span></div>
+    <div class="cat-area">
+        <div class="section-title"><span>Categories</span></div>
+        <div id="cat-list" class="cat-scroll"></div>
+    </div>
     
+    <div class="section-title"><span id="active-cat-name">Fresh Items</span></div>
     <div id="prod-list" class="prod-grid">
-        <div class="skel-card"><div class="skeleton" style="height:100px; border-radius:10px;"></div><div class="skeleton" style="height:15px; width:80%;"></div><div class="skeleton" style="height:20px; width:50%;"></div><div class="skeleton" style="height:35px; border-radius:8px; margin-top:5px;"></div></div>
-        <div class="skel-card"><div class="skeleton" style="height:100px; border-radius:10px;"></div><div class="skeleton" style="height:15px; width:80%;"></div><div class="skeleton" style="height:20px; width:50%;"></div><div class="skeleton" style="height:35px; border-radius:8px; margin-top:5px;"></div></div>
-        <div class="skel-card"><div class="skeleton" style="height:100px; border-radius:10px;"></div><div class="skeleton" style="height:15px; width:80%;"></div><div class="skeleton" style="height:20px; width:50%;"></div><div class="skeleton" style="height:35px; border-radius:8px; margin-top:5px;"></div></div>
-        <div class="skel-card"><div class="skeleton" style="height:100px; border-radius:10px;"></div><div class="skeleton" style="height:15px; width:80%;"></div><div class="skeleton" style="height:20px; width:50%;"></div><div class="skeleton" style="height:35px; border-radius:8px; margin-top:5px;"></div></div>
+        <div class="skel-card"><div class="skeleton" style="height:100px; border-radius:10px;"></div><div class="skeleton" style="height:15px; width:80%;"></div><div class="skeleton" style="height:20px; width:50%;"></div></div>
+        <div class="skel-card"><div class="skeleton" style="height:100px; border-radius:10px;"></div><div class="skeleton" style="height:15px; width:80%;"></div><div class="skeleton" style="height:20px; width:50%;"></div></div>
     </div>
 
     <div id="cart-bar" class="float-cart" onclick="App.openCart()">
-        <div><div style="font-size: 0.75rem; opacity: 0.8;">ITEM TOTAL</div><div style="font-size: 1.2rem; font-weight: 800;" id="bar-total">₹0</div></div>
-        <div style="background: rgba(255,255,255,0.15); padding: 8px 15px; border-radius: 8px; font-weight: 700;">View Cart <i class="fa-solid fa-chevron-right"></i></div>
+        <div>
+            <div style="font-size: 0.75rem; opacity: 0.8;">ITEM TOTAL</div>
+            <div style="font-size: 1.2rem; font-weight: 800;" id="bar-total">₹0</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.15); padding: 8px 15px; border-radius: 8px; font-weight: 700;">
+            View Cart <i class="fa-solid fa-chevron-right"></i>
+        </div>
     </div>
 
     <div id="cart-modal" class="modal-overlay" style="align-items: flex-end; padding: 0;">
         <div class="modal-box" style="border-radius: 24px 24px 0 0; max-height: 85vh; display: flex; flex-direction: column;">
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>Your Cart</h2><div onclick="App.closeCart()" style="padding: 10px; cursor: pointer;"><i class="fa-solid fa-xmark" style="font-size: 1.5rem;"></i></div>
-            </div>
-
-            <div id="del-progress" style="margin-bottom: 15px; display:none;">
-                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:5px; color:#64748b; font-weight:700;"><span id="del-prog-text"></span></div>
-                <div style="background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden;"><div id="del-prog-bar" style="background:var(--success); height:100%; width:0%; transition:0.4s;"></div></div>
+                <h2>Your Cart</h2>
+                <div onclick="App.closeCart()" style="padding: 10px; cursor: pointer;">
+                    <i class="fa-solid fa-xmark" style="font-size: 1.5rem;"></i>
+                </div>
             </div>
 
             <div id="cart-items" style="flex: 1; overflow-y: auto; margin-bottom: 20px;"></div>
@@ -228,7 +830,9 @@
                 <div class="bill-total"><span>Grand Total</span><span id="bill-grand">₹0</span></div>
             </div>
 
-            <button onclick="User.editAddress()" class="btn-outline" id="addr-btn"><i class="fa-solid fa-map-location-dot"></i> Add / Update Address</button>
+            <button onclick="User.editAddress()" class="btn-outline" id="addr-btn" style="display:none;">
+                <i class="fa-solid fa-map-location-dot"></i> Edit Address
+            </button>
             <div id="addr-preview" style="text-align:center; font-size:0.85rem; color:#64748b; margin-bottom:10px; display:none;"></div>
 
             <div class="inp-group">
@@ -239,27 +843,19 @@
                 </select>
             </div>
 
-            <div id="upi-box" style="display:none; margin-bottom:15px; background: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #cbd5e1;">
-                <p style="text-align:center; font-size:0.9rem; font-weight:700; margin-bottom:10px;">Pay via UPI App</p>
-                <button onclick="App.payNow()" class="btn-full" style="background:#16a34a; margin-top:0;"><i class="fa-solid fa-bolt"></i> Open UPI App</button>
-                <div style="text-align: center; margin: 15px 0; display: flex; align-items: center; gap: 10px; color: #64748b; font-size: 0.8rem; font-weight: 700;">
-                    <hr style="flex:1; border:none; border-top:1px dashed #cbd5e1;"> OR <hr style="flex:1; border:none; border-top:1px dashed #cbd5e1;">
-                </div>
-                <p style="font-size:0.8rem; color:#64748b; margin-bottom:8px; text-align:center;">If the app shows a limit, copy this ID and pay manually:</p>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="upi-id-text" value="6268735944@pthdfc" readonly class="inp-field" style="margin-bottom:0; flex:1; text-align:center; font-weight:700; background:#e2e8f0;">
-                    <button onclick="App.copyUPI(event)" style="padding: 0 20px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer;">Copy</button>
-                </div>
-            </div>
-
             <button id="btn-place-order" onclick="App.placeOrder()" class="btn-full">Confirm Order</button>
         </div>
     </div>
 
+   
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, push, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getDatabase, ref, onValue, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        
+        // 💡 IMPORT FIREBASE AUTH FUNCS 💡
+        import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
+        // TOAST NOTIFICATION FUNCTION
         window.showToast = (msg) => {
             const toast = document.getElementById('toast');
             toast.innerText = msg;
@@ -267,6 +863,7 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         };
 
+        // SPLASH SCREEN REMOVAL
         document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -277,104 +874,318 @@
             }, 2000);
         });
 
+        // 💡 PWA AUTO-INSTALL LOGIC 💡
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault(); deferredPrompt = e;
+            e.preventDefault(); 
+            deferredPrompt = e;
+            
+            // Show Bottom Banner after 2 seconds
+            setTimeout(() => { 
+                document.getElementById('install-banner').style.display = 'block'; 
+            }, 2000);
+            
+            // Show Top Button
             const installBtn = document.getElementById('install-btn');
             installBtn.style.display = 'block';
-            installBtn.addEventListener('click', () => {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') { installBtn.style.display = 'none'; }
-                    deferredPrompt = null;
-                });
-            });
+            installBtn.addEventListener('click', () => { triggerInstall(); });
         });
 
-        const firebaseConfig = { apiKey: "AIzaSyD8twwcxHsqPeaF45GdY14dSBMIv0UJNu4", databaseURL: "https://jdmart-d4409-default-rtdb.firebaseio.com", projectId: "jdmart-d4409", appId: "1:931488167884:web:877fbd682404056cad0f69" };
+        document.getElementById('install-btn-pwa').addEventListener('click', () => { 
+            triggerInstall(); 
+        });
+
+        function triggerInstall() {
+            if (deferredPrompt) {
+                document.getElementById('install-banner').style.display = 'none';
+                document.getElementById('install-btn').style.display = 'none';
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => { 
+                    deferredPrompt = null; 
+                });
+            }
+        }
+
+        // Service Worker Registration for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW failed'));
+            });
+        }
+
+        // 💡 FIREBASE CONFIGURATION (यहाँ अपनी असली डिटेल्स डालें!) 💡
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD8twwcxHsqPeaF45GdY14dSBMIv0UJNu4", 
+            databaseURL: "https://jdmart-d4409-default-rtdb.firebaseio.com", 
+            projectId: "jdmart-d4409", 
+            appId: "1:931488167884:web:877fbd682404056cad0f69" 
+        };
+        
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const auth = getAuth(app); 
+        
+        setPersistence(auth, browserLocalPersistence).catch(console.error);
+        
         const SHOP_NUMBER = "916268735944";
-        const state = { products: [], cart: JSON.parse(localStorage.getItem('jd_cart')) || {}, activeCat: 'All', user: JSON.parse(localStorage.getItem('jd_user')) || null, villages: [], deliveryCharge: 0 };
 
+        // GLOBAL STATE
+        const state = { 
+            products: [], 
+            cart: JSON.parse(localStorage.getItem('jd_cart')) || {}, 
+            activeCat: 'All', 
+            user: null, 
+            villages: {}, 
+            deliveryCharge: 0,
+            isAuthModeLogin: true 
+        };
+
+        // 💡 ADMIN CONTROLLED DELIVERY VARIABLES 💡
+        let adminGlobalCharge = 0;
+        let adminGlobalLimit = 0;
+
+        // Fetch Live Admin Delivery Settings
+        onValue(ref(db, 'app_settings/delivery'), snapshot => {
+            const data = snapshot.val();
+            if(data) {
+                adminGlobalCharge = Number(data.defaultCharge !== undefined ? data.defaultCharge : 0);
+                adminGlobalLimit = Number(data.freeLimit !== undefined ? data.freeLimit : 0);
+            }
+            if(window.App && window.App.updateCartUI) {
+                window.App.updateCartUI();
+            }
+        });
+
+        // 💡 FIREBASE AUTH LISTENER (Tracks User Login Status) 💡
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User logged in, fetch their address details
+                onValue(ref(db, `users/${user.uid}`), (snap) => {
+                    if(snap.exists()) {
+                        const data = snap.val().savedAddress;
+                        let charge = adminGlobalCharge, limit = adminGlobalLimit; 
+                        
+                        // Check if village has specific charge
+                        if(state.villages && Object.keys(state.villages).length > 0) {
+                            const vData = Object.values(state.villages).find(v => v.name === data.village);
+                            if(vData) { 
+                                charge = Number(vData.charge); 
+                                limit = Number(vData.freeLimit); 
+                            }
+                        }
+                        
+                        state.user = { ...data, charge, freeLimit: limit, uid: user.uid };
+                        User.updateUI();
+                        App.updateCartUI();
+                    }
+                });
+            } else {
+                // User logged out
+                state.user = null;
+                User.updateUI();
+                App.updateCartUI();
+            }
+        });
+
+        // =========================================
+        // USER AUTHENTICATION & MANAGEMENT 
+        // =========================================
         window.User = {
             init: () => {
-                                onValue(ref(db, 'villages'), s => {
+                // Load Villages from Firebase
+                onValue(ref(db, 'villages'), s => {
                     const data = s.val() || {}; 
                     state.villages = data;
                     
-                    // 🚨 UPDATE: सिर्फ चालू (ON) गाँव दिखाने का कोड
                     let html = '<option value="" disabled selected>अपना गाँव चुनें</option>';
                     Object.values(data).forEach(v => {
-                        if (v.isActive !== false) { // अगर गाँव OFF नहीं है, तभी लिस्ट में दिखेगा
-                            html += `<option value="${v.name}">${v.name}</option>`;
+                        // Show only Active Villages
+                        if (v.isActive !== false) { 
+                            html += `<option value="${v.name}">${v.name}</option>`; 
                         }
                     });
+                    
                     document.getElementById('u-village').innerHTML = html;
+                    document.getElementById('auth-village').innerHTML = html; 
+                    
+                    // If user is already loaded, update their charge limits
+                    if(state.user && state.user.village) {
+                        const vData = Object.values(state.villages).find(v => v.name === state.user.village);
+                        if(vData) { 
+                            state.user.charge = Number(vData.charge); 
+                            state.user.freeLimit = Number(vData.freeLimit); 
+                        }
+                        App.updateCartUI();
+                    }
                 });
-
-
-                User.updateUI();
             },
+            
+            // 💡 OPEN LOGIN OR DASHBOARD 💡
             openMenu: () => {
-                if(state.user) {
+                if(state.user && state.user.uid) {
+                    // Logged In -> Show Dashboard (My Orders etc)
                     document.getElementById('dash-name').innerText = state.user.name;
                     document.getElementById('dash-phone').innerText = state.user.phone;
                     document.getElementById('dashboard-modal').style.display = 'flex';
-                } else { User.editAddress(); }
+                } else { 
+                    // Not Logged In -> Show Login Page
+                    document.getElementById('auth-modal').style.display = 'flex'; 
+                }
             },
+
+            // Toggles Login/Signup UI
+            toggleAuthMode: () => {
+                state.isAuthModeLogin = !state.isAuthModeLogin;
+                document.getElementById('auth-title').innerText = state.isAuthModeLogin ? "लॉगिन करें" : "नया अकाउंट बनाएं";
+                document.getElementById('register-fields').style.display = state.isAuthModeLogin ? "none" : "block";
+                document.getElementById('auth-btn').innerText = state.isAuthModeLogin ? "प्रवेश करें 🚀" : "अकाउंट बनाएं ✅";
+                document.getElementById('auth-toggle').innerText = state.isAuthModeLogin ? "नया अकाउंट बनाएं (Sign Up)" : "पहले से अकाउंट है? लॉगिन करें";
+            },
+
+            // 💡 FIREBASE AUTHENTICATION LOGIC 💡
+            handleAuth: async () => {
+                const email = document.getElementById('auth-email').value.trim();
+                const pass = document.getElementById('auth-pass').value;
+                const btn = document.getElementById('auth-btn');
+
+                if(!email || !pass) return showToast("कृपया ईमेल और पासवर्ड भरें!");
+                btn.innerText = "Please wait..."; 
+                btn.disabled = true;
+
+                try {
+                    if (state.isAuthModeLogin) {
+                        // Firebase Login
+                        await signInWithEmailAndPassword(auth, email, pass);
+                        showToast("Login Successful! ✅");
+                        document.getElementById('auth-modal').style.display = 'none';
+                    } else {
+                        // Firebase Registration
+                        const name = document.getElementById('auth-name').value.trim();
+                        const phone = document.getElementById('auth-phone').value.trim();
+                        const village = document.getElementById('auth-village').value;
+                        const addr = document.getElementById('auth-addr').value.trim();
+                        
+                        if(!name || !phone || !village) { 
+                            btn.innerText="अकाउंट बनाएं ✅"; btn.disabled=false; 
+                            return showToast("नाम, नंबर और गाँव ज़रूरी है!"); 
+                        }
+                        
+                        const phoneRegex = /^[6-9]\d{9}$/; 
+                        if(!phoneRegex.test(phone)) { 
+                            btn.innerText="अकाउंट बनाएं ✅"; btn.disabled=false; 
+                            return showToast("कृपया सही 10-अंकों का मोबाइल नंबर डालें!"); 
+                        }
+
+                        // Create User Auth
+                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                        
+                        // Save User Details in Realtime DB
+                        await set(ref(db, `users/${cred.user.uid}`), {
+                            email: email,
+                            savedAddress: { name, phone, village, address: addr }
+                        });
+                        
+                        showToast("Account Created Successfully! 🎉");
+                        document.getElementById('auth-modal').style.display = 'none';
+                    }
+                } catch (e) {
+                    showToast("Error: " + e.message.replace('Firebase: ', ''));
+                }
+                
+                btn.innerText = state.isAuthModeLogin ? "प्रवेश करें 🚀" : "अकाउंट बनाएं ✅"; 
+                btn.disabled = false;
+            },
+
+            // Logout Logic
+            logout: () => { 
+                signOut(auth); 
+                showToast("Logged Out"); 
+                setTimeout(() => location.reload(), 1000); 
+            },
+
+            // Opens Profile Edit (From Dashboard)
             editAddress: () => {
                 document.getElementById('dashboard-modal').style.display = 'none';
                 document.getElementById('cart-modal').style.display = 'none';
-                if(state.user) { document.getElementById('u-name').value = state.user.name; document.getElementById('u-phone').value = state.user.phone; document.getElementById('u-village').value = state.user.village; document.getElementById('u-addr').value = state.user.fullAddress || ''; }
+                
+                if(state.user) { 
+                    document.getElementById('u-name').value = state.user.name; 
+                    document.getElementById('u-phone').value = state.user.phone; 
+                    document.getElementById('u-village').value = state.user.village; 
+                    document.getElementById('u-addr').value = state.user.address || ''; 
+                }
                 document.getElementById('profile-modal').style.display = 'flex';
             },
-            save: () => {
-                const n = document.getElementById('u-name').value.trim(), p = document.getElementById('u-phone').value.trim(), vSelect = document.getElementById('u-village'), vName = vSelect.value, addr = document.getElementById('u-addr').value.trim();
-                if(!n || !p || !vName) return showToast("Please fill all details!");
-                                // 🚨 फेक नंबर रोकने के लिए सख्त चेकिंग
-                const phoneRegex = /^[6-9]\d{9}$/; 
-                if(!phoneRegex.test(p)) {
-                    document.getElementById('u-phone').style.border = "2px solid red";
-                    return showToast("⚠️ कृपया सही 10-अंकों का मोबाइल नंबर डालें!");
-                }
-                document.getElementById('u-phone').style.border = "1px solid #e5e7eb";
 
-                const selectedOption = vSelect.options[vSelect.selectedIndex];
-                state.user = { name: n, phone: p, village: vName, fullAddress: addr, charge: Number(selectedOption.getAttribute('data-charge')||0), freeLimit: Number(selectedOption.getAttribute('data-limit')||0) };
+            // Saves Address details back to Firebase
+            saveAddress: async () => {
+                const n = document.getElementById('u-name').value.trim();
+                const p = document.getElementById('u-phone').value.trim();
+                const vName = document.getElementById('u-village').value;
+                const addr = document.getElementById('u-addr').value.trim();
                 
-                localStorage.setItem('jd_user', JSON.stringify(state.user));
-                
-                document.getElementById('profile-modal').style.display = 'none'; 
-                User.updateUI(); 
-                App.updateCartUI(); 
-                showToast("Details Saved! ✅");
-                
-                if(Object.keys(state.cart).length > 0) {
-                    setTimeout(() => { App.openCart(); }, 300);
+                if(!n || !p || !vName) return showToast("Please fill all details!");
+                const phoneRegex = /^[6-9]\d{9}$/; 
+                if(!phoneRegex.test(p)) return showToast("⚠️ कृपया सही 10-अंकों का मोबाइल नंबर डालें!");
+
+                if(auth.currentUser) {
+                    await set(ref(db, `users/${auth.currentUser.uid}/savedAddress`), { 
+                        name: n, phone: p, village: vName, address: addr 
+                    });
+                    showToast("Address Updated! ✅");
+                    document.getElementById('profile-modal').style.display = 'none';
+                } else {
+                    showToast("Session expired, please login again");
                 }
             },
+            
+            // Adjust Cart buttons based on Login State
             updateUI: () => {
-                const btn = document.getElementById('addr-btn'), prev = document.getElementById('addr-preview');
-                if(state.user) { btn.innerHTML = `<i class="fa-solid fa-pen"></i> Change Address`; btn.style.border = "1px solid #ddd"; btn.style.color = "#64748b"; prev.style.display = 'block'; prev.innerHTML = `Deliver to: <b>${state.user.name}</b>, ${state.user.village}`; } 
-                else { btn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i> Add Address`; btn.style.border = "1px dashed var(--primary)"; btn.style.color = "var(--primary)"; prev.style.display = 'none'; }
+                const btn = document.getElementById('addr-btn');
+                const prev = document.getElementById('addr-preview');
+                
+                if(state.user) { 
+                    btn.style.display = 'block';
+                    btn.innerHTML = `<i class="fa-solid fa-pen"></i> Update Address`; 
+                    prev.style.display = 'block'; 
+                    prev.innerHTML = `Deliver to: <b>${state.user.name}</b>, ${state.user.village}`; 
+                } else { 
+                    btn.style.display = 'none';
+                    prev.style.display = 'none'; 
+                }
             },
+            
+            // 💡 MY ORDERS FETCHING 💡
             showOrders: () => {
-                if(!state.user) return showToast("Please save details first!");
+                if(!state.user || !state.user.uid) return showToast("Error loading profile");
+                
                 document.getElementById('orders-modal').style.display = 'flex';
                 document.getElementById('dashboard-modal').style.display = 'none';
-                const q = query(ref(db, 'orders'), orderByChild('customer/phone'), equalTo(state.user.phone));
+                
+                // Query orders by UID
+                const q = query(ref(db, 'orders'), orderByChild('userId'), equalTo(state.user.uid));
+                
                 onValue(q, (snap) => {
-                    if(!snap.exists()) { document.getElementById('order-list').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8">No orders yet.</div>'; return; }
+                    if(!snap.exists()) { 
+                        document.getElementById('order-list').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8">No orders yet.</div>'; 
+                        return; 
+                    }
+                    
                     const list = Object.values(snap.val()).sort((a,b) => b.timestamp - a.timestamp);
+                    
                     document.getElementById('order-list').innerHTML = list.map(o => {
                         const date = new Date(o.timestamp).toLocaleDateString();
                         const statusClass = o.status === 'Pending' ? 'st-Pending' : 'st-Delivered';
                         return `
                         <div class="order-card">
-                            <div class="order-top"><span>${date}</span><span class="order-status ${statusClass}">${o.status}</span></div>
+                            <div class="order-top">
+                                <span>${date}</span>
+                                <span class="order-status ${statusClass}">${o.status}</span>
+                            </div>
                             <div style="font-weight:700; margin-bottom:5px;">₹${o.total}</div>
-                            <div style="font-size:0.85rem; color:#64748b; margin-bottom:10px;">${o.items.length} items (${o.items.map(i=>i.title).join(', ').substring(0,30)}...)</div>
+                            <div style="font-size:0.85rem; color:#64748b; margin-bottom:10px;">
+                                ${o.items.length} items (${o.items.map(i=>i.title).join(', ').substring(0,30)}...)
+                            </div>
                             <button onclick='User.reorder(${JSON.stringify(o.items)})' class="btn-outline" style="width:100%; padding:8px; margin:0; font-size:0.9rem;">
                                 <i class="fa-solid fa-rotate-right"></i> Buy Again
                             </button>
@@ -382,14 +1193,25 @@
                     }).join('');
                 });
             },
+            
+            // 💡 REORDER LOGIC WITH MAX LIMIT CHECK 💡
             reorder: (items) => {
                 let itemsAdded = 0;
                 items.forEach(i => {
                     const prod = state.products.find(p => p.title === i.title); 
                     if(prod && prod.inStock !== false) {
-                        if(!state.cart[prod.id]) state.cart[prod.id] = {qty: 0};
-                        state.cart[prod.id].qty += i.qty;
-                        itemsAdded++;
+                        if(!state.cart[prod.id]) {
+                            state.cart[prod.id] = {qty: 0};
+                        }
+                        
+                        let maxLim = prod.maxLimit || 10; // Enforcing Limit
+                        if(state.cart[prod.id].qty + i.qty <= maxLim) {
+                            state.cart[prod.id].qty += i.qty;
+                            itemsAdded++;
+                        } else if (state.cart[prod.id].qty < maxLim) {
+                            state.cart[prod.id].qty = maxLim;
+                            itemsAdded++;
+                        }
                     }
                 });
                 
@@ -400,75 +1222,146 @@
                     showToast("Items added to cart! 🛒");
                     setTimeout(() => { App.openCart(); }, 300);
                 } else {
-                    showToast("Items are currently out of stock!");
+                    showToast("Items are Out of Stock or Max Limit reached!");
                 }
             }
         };
 
+        // =========================================
+        // APP CORE LOGIC (PRODUCTS, CART, CHECKOUT)
+        // =========================================
         window.App = {
             init: () => {
                 User.init();
+                
+                // Load Banners
                 onValue(ref(db, 'banners'), s => {
-                    const data = s.val(), box = document.getElementById('banner-container');
-                    if (!data) box.style.display = 'none';
-                    else box.innerHTML = `<div style="display: flex; overflow-x: auto; gap: 10px; scrollbar-width: none; scroll-behavior: smooth; padding-bottom: 5px;">${Object.values(data).map(b => `<img src="${b.image}" style="min-width: 100%; height: 160px; object-fit: cover; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background:#eee;" onerror="this.style.display='none'">`).join('')}</div>`;
+                    const data = s.val();
+                    const box = document.getElementById('banner-container');
+                    if (!data) {
+                        box.style.display = 'none';
+                    } else {
+                        box.innerHTML = `<div style="display: flex; overflow-x: auto; gap: 10px; scrollbar-width: none; scroll-behavior: smooth; padding-bottom: 5px;">
+                            ${Object.values(data).map(b => `<img src="${b.image}" style="min-width: 100%; height: 160px; object-fit: cover; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background:#eee;" onerror="this.style.display='none'">`).join('')}
+                        </div>`;
+                    }
                 });
                 
+                // Load Products
                 onValue(ref(db, 'products'), s => { 
                     state.products = s.val() ? Object.entries(s.val()).map(([k,v]) => ({id:k, ...v})).sort((a,b)=>(a.order||0)-(b.order||0)) : []; 
                     App.renderProd(); 
                 });
                 
+                // Load Categories
                 onValue(ref(db, 'categories'), s => {
                     const cats = s.val() ? Object.values(s.val()).sort((a,b)=>(a.order||0)-(b.order||0)) : [];
-                    let html = `<div class="cat-item ${state.activeCat==='All'?'active':''}" data-cat="All" onclick="App.setCat('All')"><div class="cat-img" style="display:flex;align-items:center;justify-content:center;background:#1e293b"><i class="fa-solid fa-border-all" style="color:white"></i></div><span class="cat-name">All</span></div>`;
-                    cats.forEach(c => { html += `<div class="cat-item ${state.activeCat===c.name?'active':''}" data-cat="${c.name}" onclick="App.setCat('${c.name}')"><img src="${c.image}" class="cat-img" onerror="this.src='https://placehold.co/100'"><span class="cat-name">${c.name}</span></div>`; });
+                    let html = `<div class="cat-item ${state.activeCat==='All'?'active':''}" data-cat="All" onclick="App.setCat('All')">
+                                    <div class="cat-img" style="display:flex;align-items:center;justify-content:center;background:#1e293b"><i class="fa-solid fa-border-all" style="color:white"></i></div>
+                                    <span class="cat-name">All</span>
+                                </div>`;
+                    cats.forEach(c => { 
+                        html += `<div class="cat-item ${state.activeCat===c.name?'active':''}" data-cat="${c.name}" onclick="App.setCat('${c.name}')">
+                                    <img src="${c.image}" class="cat-img" onerror="this.src='https://placehold.co/100'">
+                                    <span class="cat-name">${c.name}</span>
+                                 </div>`; 
+                    });
                     document.getElementById('cat-list').innerHTML = html;
                 });
 
+                // Search Box Event
                 document.getElementById('search').addEventListener('input', (e) => App.renderProd(e.target.value));
+                
+                // Voice Search Logic
                 if ('webkitSpeechRecognition' in window) {
-                    const r = new webkitSpeechRecognition(); r.lang = 'hi-IN';
-                    document.getElementById('mic').onclick = () => { r.start(); document.getElementById('mic').classList.add('mic-active'); };
+                    const r = new webkitSpeechRecognition(); 
+                    r.lang = 'hi-IN';
+                    document.getElementById('mic').onclick = () => { 
+                        r.start(); 
+                        document.getElementById('mic').classList.add('mic-active'); 
+                    };
                     r.onend = () => document.getElementById('mic').classList.remove('mic-active');
-                    r.onresult = (e) => { document.getElementById('search').value = e.results[0][0].transcript; App.renderProd(e.results[0][0].transcript); };
+                    r.onresult = (e) => { 
+                        const transcript = e.results[0][0].transcript;
+                        document.getElementById('search').value = transcript; 
+                        App.renderProd(transcript); 
+                    };
                 }
 
-                document.getElementById('payment-method').addEventListener('change', function() { document.getElementById('upi-box').style.display = this.value === 'upi' ? 'block' : 'none'; });
                 App.updateCartUI();
             },
+            
             setCat: (c) => { 
                 state.activeCat = c; 
                 document.querySelectorAll('.cat-item').forEach(item => item.classList.remove('active'));
                 const activeItem = document.querySelector(`.cat-item[data-cat="${c}"]`);
                 if(activeItem) activeItem.classList.add('active');
-                document.getElementById('active-cat-name').innerText = c==='All'?'Fresh Items':c; App.renderProd(); 
+                
+                document.getElementById('active-cat-name').innerText = c === 'All' ? 'Fresh Items' : c; 
+                App.renderProd(); 
             },
-            renderProd: (q='') => {
-                const list = state.products.filter(p => p.title.toLowerCase().includes(q.toLowerCase()) && (state.activeCat === 'All' ? true : (Array.isArray(p.category) ? p.category.includes(state.activeCat) : p.category === state.activeCat)));
-                if(!list.length) return document.getElementById('prod-list').innerHTML = `<div style="grid-column:span 2;text-align:center;padding:40px;color:#94a3b8;">No items found.</div>`;
+            
+            renderProd: (q = '') => {
+                const list = state.products.filter(p => {
+                    const matchQuery = p.title.toLowerCase().includes(q.toLowerCase());
+                    const matchCat = state.activeCat === 'All' ? true : (Array.isArray(p.category) ? p.category.includes(state.activeCat) : p.category === state.activeCat);
+                    return matchQuery && matchCat;
+                });
+
+                if(!list.length) {
+                    document.getElementById('prod-list').innerHTML = `<div style="grid-column:span 2;text-align:center;padding:40px;color:#94a3b8;">No items found.</div>`;
+                    return;
+                }
+
                 document.getElementById('prod-list').innerHTML = list.map(p => {
                     const qty = state.cart[p.id]?.qty || 0;
                     const isOOS = p.inStock === false;
                     const imgStyle = isOOS ? 'filter: grayscale(100%); opacity: 0.5;' : '';
-                    const actionHTML = isOOS ? `<button class="add-btn" style="background:#f1f5f9; color:#94a3b8; border-color:#e2e8f0; cursor:not-allowed;" disabled>Out of Stock</button>` : (qty > 0 ? `<div class="qty-control"><div class="qty-btn" onclick="App.add('${p.id}', -1)">-</div><span>${qty}</span><div class="qty-btn" onclick="App.add('${p.id}', 1)">+</div></div>` : `<button class="add-btn" onclick="App.add('${p.id}', 1)">ADD</button>`);
+                    
+                    const actionHTML = isOOS 
+                        ? `<button class="add-btn" style="background:#f1f5f9; color:#94a3b8; border-color:#e2e8f0; cursor:not-allowed;" disabled>Out of Stock</button>` 
+                        : (qty > 0 
+                            ? `<div class="qty-control"><div class="qty-btn" onclick="App.add('${p.id}', -1)">-</div><span>${qty}</span><div class="qty-btn" onclick="App.add('${p.id}', 1)">+</div></div>` 
+                            : `<button class="add-btn" onclick="App.add('${p.id}', 1)">ADD</button>`);
+                    
                     const badge = (p.order === 1 || p.order === 2) && !isOOS ? `<div class="badge-choice">JD Choice</div>` : '';
                     
-                    return `<div class="prod-card">
-                                ${badge}
-                                <div class="prod-img-box"><img src="${p.image}" class="prod-img" style="${imgStyle}" onerror="this.src='https://placehold.co/200'"></div>
-                                <div class="prod-details">
-                                    <div class="prod-title">${p.title}</div>
-                                    <div class="prod-price">₹${p.price}</div>
-                                    <div id="prod-actions-${p.id}">${actionHTML}</div>
-                                </div>
-                            </div>`;
+                    return `
+                    <div class="prod-card">
+                        ${badge}
+                        <div class="prod-img-box">
+                            <img src="${p.image}" class="prod-img" style="${imgStyle}" onerror="this.src='https://placehold.co/200'">
+                        </div>
+                        <div class="prod-details">
+                            <div class="prod-title">${p.title}</div>
+                            <div class="prod-price">₹${p.price}</div>
+                            <div id="prod-actions-${p.id}">${actionHTML}</div>
+                        </div>
+                    </div>`;
                 }).join('');
             },
-            add: (id, n, silent=false) => { 
+            
+            // 💡 MAX LIMIT LOGIC (Add to cart check) 💡
+            add: (id, n, silent = false) => { 
+                const p = state.products.find(x => x.id === id);
+                if (!p) return;
+                
+                let maxLim = p.maxLimit || 10;
+                let currentQty = state.cart[id] ? state.cart[id].qty : 0;
+                
+                // If trying to add more than limit
+                if (n > 0 && currentQty + n > maxLim) {
+                    showToast(`अधिकतम सीमा: आप इसे केवल ${maxLim} ले सकते हैं!`);
+                    return;
+                }
+
                 if(!state.cart[id]) state.cart[id] = {qty: 0}; 
                 state.cart[id].qty += n; 
-                if(state.cart[id].qty <= 0) delete state.cart[id]; 
+                
+                if(state.cart[id].qty <= 0) {
+                    delete state.cart[id]; 
+                }
+                
                 localStorage.setItem('jd_cart', JSON.stringify(state.cart)); 
                 
                 if(!silent) {
@@ -476,14 +1369,15 @@
                     const qty = state.cart[id]?.qty || 0;
                     const actionBox = document.getElementById(`prod-actions-${id}`);
                     if(actionBox) {
-                        if(qty > 0) actionBox.innerHTML = `<div class="qty-control"><div class="qty-btn" onclick="App.add('${id}', -1)">-</div><span>${qty}</span><div class="qty-btn" onclick="App.add('${id}', 1)">+</div></div>`;
-                        else actionBox.innerHTML = `<button class="add-btn" onclick="App.add('${id}', 1)">ADD</button>`;
+                        if(qty > 0) {
+                            actionBox.innerHTML = `<div class="qty-control"><div class="qty-btn" onclick="App.add('${id}', -1)">-</div><span>${qty}</span><div class="qty-btn" onclick="App.add('${id}', 1)">+</div></div>`;
+                        } else {
+                            actionBox.innerHTML = `<button class="add-btn" onclick="App.add('${id}', 1)">ADD</button>`;
+                        }
                     }
-                    if(n>0) showToast("Added to Cart!");
                 }
             },
             
-            // 💡 UPDATE: नया प्लस-माइनस बटन वाला कार्ट फंक्शन
             updateCartUI: () => {
                 const entries = Object.entries(state.cart);
                 let itemTotal = 0;
@@ -509,49 +1403,50 @@
                     </div>`;
                 }).join('');
                 
-                let delCharge = 0;
-                let delText = "Login to see";
-                const orderBtn = document.getElementById('btn-place-order');
-                const progressBox = document.getElementById('del-progress');
-                const progText = document.getElementById('del-prog-text');
-                const progBar = document.getElementById('del-prog-bar');
+                // 💡 ADMIN CONTROLLED LIVE DELIVERY ENGINE 💡
+                let targetLimit = adminGlobalLimit;
+                let baseCharge = adminGlobalCharge;
 
-                let targetLimit = (state.user && state.user.freeLimit > 0) ? state.user.freeLimit : 599; 
-                let baseCharge = (state.user && state.user.charge) ? state.user.charge : 40;
-
-                if(progressBox) progressBox.style.display = 'block';
-                
-                let pct = Math.min((itemTotal / targetLimit) * 100, 100);
-                
-                if(progBar) {
-                    progBar.style.width = pct + '%';
-                    if(pct === 100) {
-                        progBar.classList.add('shimmer-bar'); 
-                    } else {
-                        progBar.classList.remove('shimmer-bar'); 
+                // Priority 1: User's selected Village Charge (If user exists)
+                if (state.user) {
+                    if (state.user.freeLimit !== undefined && state.user.freeLimit > 0) {
+                        targetLimit = Number(state.user.freeLimit);
+                    }
+                    if (state.user.charge !== undefined) {
+                        baseCharge = Number(state.user.charge);
                     }
                 }
 
-                if(itemTotal === 0) {
-                    if(progText) progText.innerHTML = `कार्ट में ₹${targetLimit} का सामान डालें और पाएं मुफ्त डिलीवरी!`;
+                // Priority 2: Global Offer Override
+                // Agar admin panel mein ek better offer chal raha hai
+                if (adminGlobalLimit > 0 && adminGlobalLimit < targetLimit) {
+                    targetLimit = adminGlobalLimit;
+                    baseCharge = adminGlobalCharge;
+                }
+
+                let delCharge = 0;
+                let delText = "Login to see";
+                const orderBtn = document.getElementById('btn-place-order');
+
+                if (itemTotal === 0) {
                     delCharge = baseCharge;
-                } else if(itemTotal >= targetLimit) {
-                    if(progText) progText.innerHTML = `<span class="bounce-msg" style="color:var(--success); font-weight:800;">🎉 बधाई हो! आपको मुफ्त डिलीवरी मिलेगी!</span>`;
-                    delCharge = 0;
-                    delText = state.user ? `<span style="color:var(--success)">Free</span> <span style="text-decoration:line-through;font-size:0.8em;color:#94a3b8">₹${baseCharge}</span>` : `<span style="color:var(--success)">Free</span>`;
+                } else if (itemTotal >= targetLimit) {
+                    delCharge = 0; // FREE!
+                    delText = state.user 
+                        ? `<span style="color:var(--success)">Free</span> <span style="text-decoration:line-through;font-size:0.8em;color:#94a3b8">₹${baseCharge}</span>` 
+                        : `<span style="color:var(--success)">Free</span>`;
                 } else {
-                    const amountNeeded = targetLimit - itemTotal;
-                    if(progText) progText.innerHTML = `🛒 बस ₹${amountNeeded} का और सामान जोड़ें और पाएं मुफ्त डिलीवरी!`;
                     delCharge = baseCharge;
                     delText = state.user ? `₹${delCharge}` : "Login to see";
                 }
 
+                // UI Updates
                 if(state.user) {
                     orderBtn.style.background = 'var(--primary)';
                     orderBtn.innerHTML = 'Confirm Order';
                 } else {
                     orderBtn.style.background = '#94a3b8';
-                    orderBtn.innerHTML = 'Please Add Address First';
+                    orderBtn.innerHTML = 'Login to Order 🚀';
                 }
 
                 document.getElementById('cart-items').innerHTML = html || '<div style="text-align:center;padding:40px 20px;color:#94a3b8"><i class="fa-solid fa-basket-shopping" style="font-size:3rem; opacity:0.2; margin-bottom:10px;"></i><br>कार्ट खाली है।</div>';
@@ -562,94 +1457,91 @@
                 document.getElementById('bill-grand').innerText = '₹' + finalGrandTotal;
                 
                 document.getElementById('bar-total').innerText = '₹' + itemTotal;
-                if(entries.length > 0) document.getElementById('cart-bar').classList.add('show'); else document.getElementById('cart-bar').classList.remove('show');
+                
+                if(entries.length > 0) {
+                    document.getElementById('cart-bar').classList.add('show'); 
+                } else {
+                    document.getElementById('cart-bar').classList.remove('show');
+                }
                 
                 state.deliveryCharge = delCharge; 
                 state.grandTotal = finalGrandTotal;
             },
+            
             openCart: () => document.getElementById('cart-modal').style.display = 'flex',
             closeCart: () => document.getElementById('cart-modal').style.display = 'none',
             directWhatsApp: () => window.open(`https://wa.me/${SHOP_NUMBER}?text=${encodeURIComponent("Hello JD Mart, I have a query/order:\n\n...")}`, '_blank'),
             
-            payNow: () => { window.location.href = `upi://pay?pa=6268735944@pthdfc&pn=JD%20Mart&am=${state.grandTotal||0}&cu=INR`; },
-            copyUPI: (event) => {
-                const copyText = document.getElementById("upi-id-text");
-                copyText.select(); copyText.setSelectionRange(0, 99999); navigator.clipboard.writeText(copyText.value);
-                const btn = event.target; const originalText = btn.innerText; btn.innerText = "Copied!"; btn.style.background = "#16a34a";
-                setTimeout(() => { btn.innerText = originalText; btn.style.background = "var(--primary)"; }, 2000);
-            },
-
-                                                placeOrder: async () => {
+            placeOrder: async () => {
                 if(Object.keys(state.cart).length === 0) return showToast("Cart is empty!");
-                if(!state.user) { showToast("Add Address first!"); User.editAddress(); return; }
-
-                // 🚨 1. सिर्फ ₹200 की मिनिमम लिमिट का लॉक 
-                if (state.grandTotal < 200) {
-                    let kamHai = 200 - state.grandTotal;
-                    return showToast(`⚠️ कम से कम ₹200 का ऑर्डर करें! (कार्ट में ₹${kamHai} का सामान और जोड़ें)`);
+                if(!state.user) { 
+                    App.closeCart(); 
+                    document.getElementById('auth-modal').style.display = 'flex'; 
+                    return; 
                 }
 
-                const paymentMethod = document.getElementById('payment-method').value;
-                const items = Object.entries(state.cart).map(([id, i]) => { const p = state.products.find(x => x.id === id); return { title: p.title, price: p.price, qty: i.qty, total: p.price * i.qty }; });
+                // Minimum Order limit
+                if (state.grandTotal < 200) {
+                    let kamHai = 200 - state.grandTotal;
+                    return showToast(`⚠️ कम से कम ₹200 का आदेश करें! (कार्ट में ₹${kamHai} का सामान और जोड़ें)`);
+                }
+
+                const paymentMethod = document.getElementById('payment-method') ? document.getElementById('payment-method').value : 'cod';
+                const items = Object.entries(state.cart).map(([id, i]) => { 
+                    const p = state.products.find(x => x.id === id); 
+                    return { title: p.title, price: p.price, qty: i.qty, total: p.price * i.qty }; 
+                });
 
                 const btn = document.getElementById('btn-place-order');
-                btn.innerHTML = 'Placing...'; btn.disabled = true;
+                btn.innerHTML = 'Placing...'; 
+                btn.disabled = true;
 
+                // Push to Firebase Database
                 await push(ref(db, 'orders'), {
-                    customer: { name: state.user.name, phone: state.user.phone, address: `${state.user.village}, ${state.user.fullAddress}` },
-                    items: items, total: state.grandTotal, deliveryCharge: state.deliveryCharge, paymentMethod: paymentMethod, status: 'Pending', timestamp: Date.now(), source: 'App'
+                    userId: state.user.uid,
+                    customer: { 
+                        name: state.user.name, 
+                        phone: state.user.phone, 
+                        address: `${state.user.village}, ${state.user.address}` 
+                    },
+                    items: items, 
+                    total: state.grandTotal, 
+                    deliveryCharge: state.deliveryCharge, 
+                    paymentMethod: paymentMethod, 
+                    status: 'Pending', 
+                    timestamp: Date.now(), 
+                    source: 'App'
                 });
                 
+                // Construct Telegram Message
                 let itemListStr = '';
                 items.forEach((item, idx) => {
                     itemListStr += `${idx + 1}. ${item.title} (${item.qty} x ₹${item.price}) = ₹${item.total}\n`;
                 });
 
-                const tMsg = `🚨 *नया आर्डर प्राप्त हुआ!* 🚨\n\n👤 *नाम:* ${state.user.name}\n📞 *नंबर:* ${state.user.phone}\n📍 *पता:* ${state.user.village}, ${state.user.fullAddress}\n\n📦 *सामान की लिस्ट:*\n${itemListStr}\n🚚 *डिलीवरी चार्ज:* ₹${state.deliveryCharge}\n💰 *कुल बिल:* ₹${state.grandTotal}\n💳 *पेमेंट:* ${paymentMethod.toUpperCase()}`;
+                const tMsg = `🚨 *नया आर्डर प्राप्त हुआ!* 🚨\n\n👤 *नाम:* ${state.user.name}\n📞 *नंबर:* ${state.user.phone}\n📍 *पता:* ${state.user.village}, ${state.user.address}\n\n📦 *सामान की लिस्ट:*\n${itemListStr}\n🚚 *डिलीवरी चार्ज:* ₹${state.deliveryCharge}\n💰 *कुल बिल:* ₹${state.grandTotal}\n💳 *पेमेंट:* ${paymentMethod.toUpperCase()}`;
                 
+                // Telegram Notification
                 const botToken = "8666404438:AAGO2wDGksB66B09q7AGjTXARInqB9EjjMk"; 
                 const chatId = "1105786668";     
-                
                 fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(tMsg)}&parse_mode=Markdown`).catch(e=>console.log("Notif Error"));
 
-                // 🔊 🔔 NEW: Flipkart/Blinkit जैसी आर्डर सक्सेस टोन बजाना
-                try {
-                    const orderSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'); 
-                    orderSound.volume = 1.0;
-                    orderSound.play();
-                } catch(audioErr) { console.log("Sound play blocked by browser"); }
-
-                // 🌟 2. शानदार फुल-ग्रीन सक्सेस एनिमेशन 
-                const successDiv = document.createElement('div');
-                successDiv.innerHTML = `
-                    <div style="position:fixed; inset:0; background:#16a34a; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; animation: fadeIn 0.3s ease;">
-                        <div style="width:120px; height:120px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                            <i class="fa-solid fa-check" style="font-size:4rem; color:#16a34a;"></i>
-                        </div>
-                        <h1 style="font-size:2.2rem; font-weight:800; margin:0; text-align:center; animation: slideUp 0.5s ease 0.2s both;">ऑर्डर कन्फर्म!</h1>
-                        <p style="font-size:1.1rem; opacity:0.9; margin-top:10px; text-align:center; animation: slideUp 0.5s ease 0.3s both;">JD Mart से शॉपिंग करने के लिए धन्यवाद</p>
-                    </div>
-                    <style>
-                        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-                        @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
-                        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-                    </style>
-                `;
-                document.body.appendChild(successDiv);
-                
-                // 3 सेकंड बाद एनिमेशन अपने आप गायब हो जाएगा
-                setTimeout(() => { successDiv.remove(); }, 3000);
-
-                state.cart = {}; localStorage.removeItem('jd_cart');
+                // Clear Cart
+                state.cart = {}; 
+                localStorage.removeItem('jd_cart');
                 document.getElementById('cart-modal').style.display = 'none';
-                App.updateCartUI(); window.scrollTo({ top: 0, behavior: 'smooth' });
+                App.updateCartUI(); 
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 
-                btn.innerHTML = 'Confirm Order'; btn.disabled = false;
+                btn.innerHTML = 'Confirm Order'; 
+                btn.disabled = false;
+                
+                // Show Success Message
+                showToast("Order Confirmed! 🎉 Thank You!");
             }
-
-
-
         };
+
+        // Initialize App
         App.init();
     </script>
 </body>
