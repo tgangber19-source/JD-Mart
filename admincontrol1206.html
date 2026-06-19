@@ -122,7 +122,23 @@
             .pos-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); padding: 10px; gap: 10px; }
             .pos-item { padding: 10px 5px; } .pos-item img { height: 50px; }
             .btn { padding: 8px 10px; font-size: 0.85rem; }
-        }
+      
+      @media print {
+    /* प्रिंट करते समय बटन पूरी तरह गायब हो जाएंगे */
+    .btn, #receipt-wa-btn, .modal-bg, .btn-primary, .btn-wa {
+        display: none !important;
+    }
+    
+    /* बिल का डिज़ाइन साफ़ दिखेगा */
+    #receipt-content {
+        display: block !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+   
+}
+
+  }
     </style>
 </head>
 <body>
@@ -142,7 +158,7 @@
     </div>
 
     <div class="sidebar" id="sidebar">
-        <div class="logo"><i class="fa fa-shopping-bag"></i> JD Mart <span style="font-size:0.6rem; background:#374151; padding:3px 6px; border-radius:4px; margin-left:auto">V16 FINAL</span></div>
+        <div class="logo"><i class="fa fa-shopping-bag"></i> JD Mart <span style="font-size:0.6rem; background:#374151; padding:3px 6px; border-radius:4px; margin-left:auto">V18 FINAL</span></div>
         <div class="nav-item active" onclick="nav('dash')"><i class="fa fa-chart-pie"></i> Dashboard</div>
         <div class="nav-item" onclick="nav('orders')"><i class="fa fa-box"></i> Orders <span id="ord-badge" class="badge">0</span></div>
         <div class="nav-item" onclick="nav('pos')"><i class="fa fa-cash-register"></i> POS (Walk-in)</div>
@@ -171,11 +187,90 @@
 
         <div class="content">
             <div id="dash" class="section active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-weight: 800;">Sales Reports Overview</h3>
+                    <select id="dash-time-filter" class="inp" style="width: 170px; margin: 0;" onchange="calculateDashboardStats()">
+                        <option value="today">Today (आज)</option>
+                        <option value="yesterday">Yesterday (कल)</option>
+                        <option value="weekly">Weekly (इस हफ़्ते)</option>
+                        <option value="monthly">Monthly (इस महीने)</option>
+                        <option value="all">Total (अब तक का कुल)</option>
+                    </select>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-box"><div class="stat-icon" style="background:#e0e7ff; color:#4f46e5"><i class="fa fa-box"></i></div><div><small>Orders</small><h2 id="d-ord">0</h2></div></div>
                     <div class="stat-box"><div class="stat-icon" style="background:#dcfce7; color:#059669"><i class="fa fa-indian-rupee-sign"></i></div><div><small>Revenue</small><h2 id="d-rev">₹0</h2></div></div>
                     <div class="stat-box"><div class="stat-icon" style="background:#fee2e2; color:#dc2626"><i class="fa fa-cube"></i></div><div><small>Products</small><h2 id="d-prod">0</h2></div></div>
                     <div class="stat-box"><div class="stat-icon" style="background:#ffedd5; color:#d97706"><i class="fa fa-users"></i></div><div><small>Users</small><h2 id="d-usr">0</h2></div></div>
+                </div>
+
+                <div class="card-panel" style="margin-top: 25px;">
+                    <div class="panel-head">
+                        <h3><i class="fa fa-list-alt" style="color:var(--brand)"></i> <span id="report-list-title">Today's Orders</span> (ग्राहकों के नाम के साथ)</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time / ID</th>
+                                    <th>Customer Details (ग्राहक की जानकारी)</th>
+                                    <th>Total Bill</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-orders-summary-body">
+                                <tr><td colspan="4" style="text-align:center; color:#94a3b8;">फ़िल्टर के हिसाब से ऑर्डर लोड हो रहे हैं...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="margin-top: 25px;">
+                    <div class="panel-head"><h3><i class="fa fa-fire" style="color:#ea580c"></i> Top Selling Products (सबसे ज़्यादा बिकने वाले सामान)</h3></div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Rank</th><th>Product Name</th><th>Total Items Sold (कुल बिक्री)</th></tr>
+                            </thead>
+                            <tbody id="top-products-body">
+                                <tr><td colspan="3" style="text-align:center; color:#94a3b8;">ऑर्डर लोड हो रहे हैं...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="margin-top: 25px;">
+                    <div class="panel-head">
+                        <h3><i class="fa fa-user-check" style="color:#8b5cf6"></i> Customer History Search</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px; font-weight: 600;">किसी भी कस्टमर का नाम या नंबर लिखकर उसकी पूरी जन्म-कुंडली निकालें:</p>
+                        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                            <input type="text" id="cust-search-input" class="inp" placeholder="नाम या नंबर डालें (e.g. Rahul या 98765...)" style="margin:0; flex:1; min-width:200px;">
+                            <button onclick="searchCustomerHistory()" class="btn btn-primary" style="background:#8b5cf6; border:none;"><i class="fa fa-search"></i> Search History</button>
+                        </div>
+                        
+                        <div id="cust-search-results" style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:20px; display:none; animation: fadeUp 0.3s;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="margin-top: 25px;">
+                    <div class="panel-head">
+                        <h3><i class="fa fa-bell fa-shake" style="color:#eab308"></i> Smart Refill Alerts (तेल ख़त्म होने वाला है!)</h3>
+                        <button onclick="checkRefillAlerts()" class="btn btn-outline" style="border-color:#eab308; color:#ca8a04; padding:5px 10px; font-size:0.8rem;"><i class="fa fa-sync"></i> Scan</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Customer</th><th>Product</th><th>Last Bought</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="refill-alerts-body">
+                                <tr><td colspan="4" style="text-align:center; color:#94a3b8;">स्कैन किया जा रहा है...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -268,25 +363,14 @@
                 </div>
 
                 <div class="card-panel" style="max-width: 600px; margin-top: 25px;">
-                    <div class="panel-head"><h3>Bulk Category Price Update</h3></div>
+                    <div class="panel-head"><h3>Category Manual Price List</h3></div>
                     <div style="padding: 25px;">
-                        <label class="inp-label">कैटेगरी चुनें (Select Category)</label>
-                        <select id="bulk-cat-select" class="inp"></select>
-
-                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                            <div style="flex: 1;">
-                                <label class="inp-label">क्या करना है? (Action)</label>
-                                <select id="bulk-price-action" class="inp" style="margin:0;">
-                                    <option value="increase">Price बढ़ाएं (+)</option>
-                                    <option value="decrease">Price घटाएं (-)</option>
-                                </select>
-                            </div>
-                            <div style="flex: 1;">
-                                <label class="inp-label">कितने रुपये? (Amount in ₹)</label>
-                                <input id="bulk-price-amount" type="number" class="inp" placeholder="Eg. 5" style="margin:0;">
-                            </div>
+                        <label class="inp-label">कैटेगरी चुनें (Select Category to Edit)</label>
+                        <select id="bulk-cat-select" class="inp" onchange="loadCategoryProductsForEdit(this.value)"></select>
+                        
+                        <div id="manual-price-list-container" style="max-height: 350px; overflow-y: auto; margin-top: 15px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; padding: 10px; display: none;">
+                            <div id="manual-price-rows"></div>
                         </div>
-                        <button onclick="updateCategoryPricesBulk()" class="btn btn-primary" style="width:100%; background: #ea580c;">Update All Products Price 💰⚡</button>
                     </div>
                 </div>
             </div>
@@ -468,11 +552,10 @@
                 const d=s.val()||{}; ordersData=Object.entries(d).reverse().map(([k,v])=>({key:k, val:v}));
                 const currentCount = ordersData.length;
                 
-                document.getElementById('d-ord').innerText=currentCount; document.getElementById('ord-badge').innerText=currentCount;
-                let r=0; ordersData.forEach(x=>r+=Number(x.val.total||0)); document.getElementById('d-rev').innerText="₹"+r.toLocaleString('en-IN');
-                
                 if(!initLoad && currentCount > prevOrderCount) { const audio = document.getElementById('notif'); audio.play().catch(()=>{}); }
-                prevOrderCount = currentCount; initLoad=false; renderOrders(ordersData);
+                prevOrderCount = currentCount; initLoad=false; 
+                renderOrders(ordersData);
+                calculateDashboardStats(); 
             });
             
             onValue(ref(db, 'categories'), s => { const d=s.val()||{}; allCats = Object.entries(d).map(([k,v])=>({id:k,...v})).sort((a,b)=>(a.order||0)-(b.order||0)); renderCats(allCats); });
@@ -677,33 +760,258 @@
             }).then(() => alert("डिलीवरी चार्ज लाइव अपडेट हो गया है! 🚀"));
         };
 
-        // 💡 Bulk Category Price Update Logic
-        window.updateCategoryPricesBulk = async () => {
-            const selectedCat = document.getElementById('bulk-cat-select').value;
-            const action = document.getElementById('bulk-price-action').value;
-            const amount = Number(document.getElementById('bulk-price-amount').value);
+        // 💡 Advanced Dashboard Stats & Orders Filter
+        window.calculateDashboardStats = () => {
+            const filterType = document.getElementById('dash-time-filter').value;
+            const now = Date.now();
+            let startTime = 0;
 
-            if (!selectedCat) return alert("कृपया पहले कैटेगरी चुनें!");
-            if (!amount || amount <= 0) return alert("कृपया सही अमाउंट (₹) डालें!");
-
-            const confirmMsg = `क्या आप सच में "${selectedCat}" कैटेगरी के सभी प्रोडक्ट्स का प्राइस ₹${amount} ${action === 'increase' ? 'बढ़ाना' : 'घटाना'} चाहते हैं?`;
-            if (!confirm(confirmMsg)) return;
-
-            let updatedCount = 0;
-            for (let p of allProds) {
-                let pCats = Array.isArray(p.category) ? p.category : [p.category];
-                if (pCats.includes(selectedCat)) {
-                    let newPrice = p.price;
-                    if (action === 'increase') newPrice += amount;
-                    else if (action === 'decrease') newPrice -= amount;
-
-                    if (newPrice < 0) newPrice = 0;
-                    await update(ref(db, `products/${p.id}`), { price: newPrice });
-                    updatedCount++;
-                }
+            const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+            const todayTime = startOfToday.getTime();
+            
+            if (filterType === 'today') {
+                startTime = todayTime;
+                document.getElementById('report-list-title').innerText = "Today's Orders (आज के ऑर्डर्स)";
+            } else if (filterType === 'yesterday') {
+                startTime = todayTime - (24 * 60 * 60 * 1000);
+                document.getElementById('report-list-title').innerText = "Yesterday's Orders (कल के ऑर्डर्स)";
+            } else if (filterType === 'weekly') {
+                startTime = now - (7 * 24 * 60 * 60 * 1000);
+                document.getElementById('report-list-title').innerText = "This Week's Orders (इस हफ़्ते के ऑर्डर्स)";
+            } else if (filterType === 'monthly') {
+                startTime = now - (30 * 24 * 60 * 60 * 1000);
+                document.getElementById('report-list-title').innerText = "This Month's Orders (इस महीने के ऑर्डर्स)";
+            } else if (filterType === 'all') {
+                startTime = 0; // शुरू से अब तक
+                document.getElementById('report-list-title').innerText = "Total Orders (अब तक के सारे ऑर्डर्स)";
             }
-            alert(`सफलतापूर्वक! "${selectedCat}" के ${updatedCount} प्रोडक्ट्स के प्राइस अपडेट हो गए। 🎉`);
-            document.getElementById('bulk-price-amount').value = '';
+
+            let filteredOrders = [];
+            if (filterType === 'yesterday') {
+                filteredOrders = ordersData.filter(o => o.val.timestamp >= startTime && o.val.timestamp < todayTime);
+            } else {
+                filteredOrders = ordersData.filter(o => o.val.timestamp >= startTime);
+            }
+
+            document.getElementById('d-ord').innerText = filteredOrders.length;
+            let revenue = 0; filteredOrders.forEach(o => revenue += Number(o.val.total || 0));
+            document.getElementById('d-rev').innerText = "₹" + revenue.toLocaleString('en-IN');
+
+            // Daily Orders Table Update
+            document.getElementById('dash-orders-summary-body').innerHTML = filteredOrders.length > 0 ? filteredOrders.map(item => {
+                const k = item.key; const v = item.val;
+                let name = 'Guest', phone = '-', addr = 'Standard Delivery';
+                
+                if(v.customer) { name = v.customer.name; phone = v.customer.phone; addr = v.customer.address; }
+                else if(v.address && typeof v.address === 'object') { name = v.address.name; phone = v.address.phone; addr = v.address.village || v.address.address; }
+                else { name = v.name || name; phone = v.phone || phone; addr = v.address || addr; }
+
+                let timeStr = new Date(v.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                let stColor = '#e5e7eb'; if(v.status==='Placed') stColor='#fef3c7'; if(v.status==='Delivered') stColor='#dcfce7'; if(v.status==='Out') stColor='#e0e7ff';
+
+                return `
+                    <tr>
+                        <td><span style="font-weight:800; color:var(--brand);">#${k.slice(-5).toUpperCase()}</span><br><small style="color:#64748b; font-weight:600;">⏰ ${timeStr}</small></td>
+                        <td>
+                            <b style="font-size:0.95rem;">${name}</b> <small style="color:#64748b; font-weight:700;">(${phone})</small><br>
+                            <small style="color:#475569; font-weight:600;"><i class="fa fa-map-marker-alt" style="color:#ef4444"></i> ${addr}</small>
+                        </td>
+                        <td><b style="color:#111827;">₹${v.total}</b></td>
+                        <td><span style="background:${stColor}; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">${v.status}</span></td>
+                    </tr>
+                `;
+            }).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8;">इस टाइम फ़िल्टर में कोई ऑर्डर नहीं मिला।</td></tr>`;
+
+            // Top Selling Products All-Time Trend
+            let productCounts = {};
+            ordersData.forEach(o => {
+                const items = o.val.items ? (Array.isArray(o.val.items) ? o.val.items : Object.values(o.val.items)) : [];
+                items.forEach(i => { if (i.title) { productCounts[i.title] = (productCounts[i.title] || 0) + Number(i.qty || 1); } });
+            });
+            let topProducts = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            document.getElementById('top-products-body').innerHTML = topProducts.length > 0 ? topProducts.map((p, idx) => `
+                <tr>
+                    <td><b>#${idx + 1}</b></td>
+                    <td><i class="fa fa-cube" style="color:var(--brand)"></i> ${p[0]}</td>
+                    <td><span class="badge" style="background:var(--success); margin:0;">${p[1]} items sold</span></td>
+                </tr>
+            `).join('') : `<tr><td colspan="3" style="text-align:center; color:#94a3b8;">अभी कोई बिक्री डेटा नहीं है।</td></tr>`;
+
+            // Check Refill Alerts
+            checkRefillAlerts();
+        };
+
+        // 💡 Customer History Search Logic
+        window.searchCustomerHistory = () => {
+            const query = document.getElementById('cust-search-input').value.toLowerCase().trim();
+            const resBox = document.getElementById('cust-search-results');
+            
+            if(!query) {
+                alert("कृपया कस्टमर का नाम या नंबर डालें!");
+                return;
+            }
+
+            let custOrders = ordersData.filter(o => {
+                const v = o.val;
+                let name = '', phone = '';
+                if(v.customer) { name = v.customer.name || ''; phone = v.customer.phone || ''; }
+                else if(v.address && typeof v.address === 'object') { name = v.address.name || ''; phone = v.address.phone || ''; }
+                else { name = v.name || ''; phone = v.phone || ''; }
+                
+                return name.toLowerCase().includes(query) || String(phone).includes(query);
+            });
+
+            if(custOrders.length === 0) {
+                resBox.style.display = 'block';
+                resBox.innerHTML = `<p style="color:#ef4444; text-align:center; margin:0; font-weight:800; font-size:1.1rem;"><i class="fa fa-triangle-exclamation"></i> इस नाम या नंबर से अब तक कोई ऑर्डर नहीं मिला।</p>`;
+                return;
+            }
+
+            let totalSpent = 0;
+            let boughtItems = {}; 
+
+            custOrders.forEach(o => {
+                totalSpent += Number(o.val.total || 0);
+                const items = o.val.items ? (Array.isArray(o.val.items) ? o.val.items : Object.values(o.val.items)) : [];
+                items.forEach(i => {
+                    if(i.title) {
+                        boughtItems[i.title] = (boughtItems[i.title] || 0) + Number(i.qty || 1);
+                    }
+                });
+            });
+
+            let itemsHtml = Object.entries(boughtItems).sort((a,b) => b[1] - a[1]).map(([title, qty]) => 
+                `<span style="display:inline-flex; align-items:center; gap:5px; background:#e0e7ff; color:#4338ca; padding:6px 12px; border-radius:20px; font-size:0.85rem; margin:4px; font-weight:800; border:1px solid #c7d2fe;">
+                    ${title} <span style="background:#4338ca; color:white; padding:2px 6px; border-radius:10px; font-size:0.7rem;">x${qty}</span>
+                </span>`
+            ).join('');
+
+            resBox.style.display = 'block';
+            resBox.innerHTML = `
+                <h4 style="color:#111827; margin-bottom:15px; font-size:1.1rem;">रिपोर्ट: <span style="color:var(--brand); text-transform:uppercase;">"${query}"</span></h4>
+                
+                <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
+                    <div style="background:white; padding:15px; border-radius:10px; border:1px solid #e5e7eb; flex:1; min-width:120px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                        <small style="color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">कुल ऑर्डर्स</small><br>
+                        <span style="font-size:1.6rem; font-weight:800; color:#059669;">${custOrders.length} <small style="font-size:0.9rem; color:#10b981;">बार</small></span>
+                    </div>
+                    <div style="background:white; padding:15px; border-radius:10px; border:1px solid #e5e7eb; flex:1; min-width:120px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                        <small style="color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">कुल ख़रीदारी</small><br>
+                        <span style="font-size:1.6rem; font-weight:800; color:#ea580c;">₹${totalSpent.toLocaleString('en-IN')}</span>
+                    </div>
+                </div>
+                
+                <div style="background:white; padding:20px; border-radius:10px; border:1px solid #e5e7eb; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                    <p style="margin:0 0 15px 0; font-weight:800; color:#475569; font-size:0.95rem;"><i class="fa fa-shopping-basket"></i> अभी तक क्या-क्या ख़रीदा है (Top Items):</p>
+                    <div>${itemsHtml}</div>
+                </div>
+            `;
+        };
+
+        // 💡 Smart Refill Alerts Logic (Predictive Reordering)
+        window.checkRefillAlerts = () => {
+            let oilPurchases = {}; 
+            const keywords = ['15 kg', '15kg', '15 kilo', '15 liter', '15 ltr', '15 l', 'tin', 'टीन'];
+            
+            ordersData.forEach(o => {
+                const v = o.val;
+                if(v.status === 'Delivered') { 
+                    const items = v.items ? (Array.isArray(v.items) ? v.items : Object.values(v.items)) : [];
+                    let name = 'Guest', phone = '';
+                    if(v.customer) { name = v.customer.name; phone = v.customer.phone; }
+                    else if(v.address && typeof v.address === 'object') { name = v.address.name; phone = v.address.phone; }
+                    else { name = v.name; phone = v.phone; }
+                    
+                    if(!phone) return;
+                    
+                    items.forEach(i => {
+                        if(i.title) {
+                            let t = i.title.toLowerCase();
+                            let isBigOil = (t.includes('oil') || t.includes('tel') || t.includes('तेल') || t.includes('soyabean') || t.includes('mustard') || t.includes('bran')) && keywords.some(kw => t.includes(kw));
+                            
+                            if(isBigOil) {
+                                if(!oilPurchases[phone] || oilPurchases[phone].lastDate < v.timestamp) {
+                                    oilPurchases[phone] = { name: name, phone: phone, lastDate: v.timestamp, itemTitle: i.title };
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+
+            const now = Date.now();
+            const alertsHtml = [];
+            
+            Object.values(oilPurchases).forEach(p => {
+                let daysPassed = Math.floor((now - p.lastDate) / (1000 * 60 * 60 * 24));
+                
+                if(daysPassed >= 60 && daysPassed <= 100) {
+                    let dateStr = new Date(p.lastDate).toLocaleDateString();
+                    let cleanPh = String(p.phone).replace(/\D/g, '').slice(-10);
+                    
+                    let waMsg = encodeURIComponent(`नमस्ते ${p.name} जी! JD Mart (झंकार किराना) से।\n\nपिछली बार ${dateStr} को आपने "${p.itemTitle}" लिया था। लगभग 2 महीने हो गए हैं, शायद तेल खत्म होने वाला है?\n\nअगर आपको नया टीन चाहिए, तो अभी इस मैसेज का रिप्लाई करें या हमारे ऐप से आर्डर करें। फ्री होम डिलीवरी उपलब्ध है! 🚚🛒`);
+                    let waLink = `https://wa.me/91${cleanPh}?text=${waMsg}`;
+                    
+                    alertsHtml.push(`
+                        <tr>
+                            <td><b>${p.name}</b><br><small style="color:#64748b">${p.phone}</small></td>
+                            <td><div style="font-size:0.85rem; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.itemTitle}</div></td>
+                            <td><b style="color:#ea580c;">${daysPassed} दिन पहले</b><br><small style="color:#64748b">${dateStr}</small></td>
+                            <td><a href="${waLink}" target="_blank" class="btn btn-wa" style="padding:5px 10px; font-size:0.8rem;"><i class="fa-brands fa-whatsapp"></i> Reminder</a></td>
+                        </tr>
+                    `);
+                }
+            });
+
+            document.getElementById('refill-alerts-body').innerHTML = alertsHtml.length > 0 ? alertsHtml.join('') : `<tr><td colspan="4" style="text-align:center; padding:20px; color:#10b981; font-weight:700;"><i class="fa fa-check-circle"></i> फिलहाल किसी का तेल खत्म होने का अलर्ट नहीं है।</td></tr>`;
+        };
+
+        // 💡 Category Manual Price List Editor
+        window.loadCategoryProductsForEdit = (categoryName) => {
+            const container = document.getElementById('manual-price-list-container');
+            const rowsBox = document.getElementById('manual-price-rows');
+            
+            const filtered = allProds.filter(p => {
+                let pCats = Array.isArray(p.category) ? p.category : [p.category];
+                return pCats.includes(categoryName);
+            });
+
+            if(filtered.length === 0) {
+                rowsBox.innerHTML = '<p style="text-align:center; padding:10px; color:#94a3b8;">इस कैटेगरी में कोई प्रोडक्ट नहीं है।</p>';
+                container.style.display = 'block';
+                return;
+            }
+
+            rowsBox.innerHTML = filtered.map(p => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid var(--border)">
+                    <input type="text" value="${p.title}" id="inline-title-${p.id}" style="flex:1; padding:6px; border:1px solid var(--border); border-radius:4px; font-weight:700; font-size:0.85rem; margin-right:10px;" />
+                    
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; color:#64748b; cursor:pointer; font-weight:bold;">
+                            <input type="checkbox" id="inline-stock-${p.id}" ${p.inStock !== false ? 'checked' : ''} style="width:16px; height:16px; accent-color:var(--brand); cursor:pointer;"> In Stock
+                        </label>
+                        
+                        <span style="font-size:0.8rem; font-weight:600; color:#64748b; border-left:1px solid #ddd; padding-left:8px;">₹</span>
+                        <input type="number" value="${p.price}" id="inline-price-${p.id}" style="width:70px; padding:6px; border:1px solid var(--border); border-radius:4px; font-weight:800; text-align:center;" />
+                        
+                        <button onclick="saveInlinePrice('${p.id}')" style="background:var(--success); color:white; border:none; padding:6px 10px; border-radius:4px; font-size:0.8rem; font-weight:bold; cursor:pointer;"><i class="fa fa-check"></i></button>
+                    </div>
+                </div>
+            `).join('');
+            container.style.display = 'block';
+        };
+
+        window.saveInlinePrice = (id) => {
+            const newPrice = Number(document.getElementById(`inline-price-${id}`).value);
+            const newTitle = document.getElementById(`inline-title-${id}`).value.trim();
+            const isInStock = document.getElementById(`inline-stock-${id}`).checked;
+
+            if(isNaN(newPrice) || newPrice < 0) return alert("कृपया सही कीमत डालें!");
+            if(!newTitle) return alert("प्रोडक्ट का नाम खाली नहीं हो सकता!");
+            
+            update(ref(db, `products/${id}`), { price: newPrice, title: newTitle, inStock: isInStock }).then(() => {
+                alert("डिटेल्स अपडेट हो गईं! ✅");
+            }).catch(e => alert("Error: " + e.message));
         };
 
         // POS Fast UI Functions
@@ -813,22 +1121,35 @@
         }
 
         window.triggerPrint = () => {
-            const printContent = document.getElementById('receipt-content').innerHTML;
-            const iframe = document.createElement('iframe');
-            iframe.style.position = 'fixed'; iframe.style.right = '0'; iframe.style.bottom = '0';
-            iframe.style.width = '0'; iframe.style.height = '0'; iframe.style.border = '0';
-            document.body.appendChild(iframe);
-            
-            iframe.contentWindow.document.open();
-            iframe.contentWindow.document.write('<html><head><style>@page { margin: 0; } body { font-family: "Courier New", Courier, monospace; width: 220px; margin: 0 auto; padding: 10px; color: #000; } table { width: 100%; border-collapse: collapse; }</style></head><body>' + printContent + '</body></html>');
-            iframe.contentWindow.document.close();
-            
-            iframe.onload = () => {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-                setTimeout(() => document.body.removeChild(iframe), 1000);
-            };
-        };
+    const printContent = document.getElementById('receipt-content').innerHTML;
+    const printWindow = window.open('', '_blank', 'width=300,height=600');
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <style>
+                @page { margin: 0; size: 80mm auto; }
+                body { 
+                    font-family: 'Courier New', Courier, monospace; 
+                    width: 76mm; /* थर्मल पेपर की चौड़ाई */
+                    padding: 5px; 
+                    color: #000; 
+                }
+                table { width: 100%; border-collapse: collapse; }
+                /* यहाँ बटन को प्रिंट में छिपाना ज़रूरी है */
+                .btn, #receipt-wa-btn, .modal-bg { display: none !important; }
+            </style>
+        </head>
+        <body>${printContent}</body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+};
 
         window.searchTable=(t,v)=>{document.querySelectorAll(`#${t} tr`).forEach(r=>r.style.display=r.innerText.toLowerCase().includes(v.toLowerCase())?'':'none')};
         window.filterGrid=(g,v)=>{document.querySelectorAll(`#${g} .prod-card`).forEach(b=>b.style.display=b.innerText.toLowerCase().includes(v.toLowerCase())?'block':'none')};
