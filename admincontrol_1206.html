@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JD Mart | Admin Control Room</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #111827; --brand: #4f46e5; --success: #10b981; --danger: #ef4444; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --border: #e5e7eb; --radius: 12px; --sidebar-w: 270px; --whatsapp: #25D366; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* LOGIN */
+        #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: var(--card); width: 400px; padding: 40px; border-radius: 20px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center; }
+        .inp-log { width: 100%; padding: 14px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; }
+        .btn-log { width: 100%; padding: 14px; background: var(--brand); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+        /* SIDEBAR & MAIN */
+        .sidebar { width: var(--sidebar-w); background: var(--primary); color: white; display: none; flex-direction: column; padding: 25px 20px; }
+        .logo { font-size: 1.5rem; font-weight: 800; margin-bottom: 40px; display: flex; align-items: center; gap: 12px; }
+        .nav-item { padding: 14px 15px; margin-bottom: 8px; cursor: pointer; border-radius: 10px; display: flex; align-items: center; gap: 12px; color: #9ca3af; font-weight: 600; font-size: 0.95rem; transition: all 0.2s ease; }
+        .nav-item:hover, .nav-item.active { background: var(--brand); color: white; }
+        .badge { background: var(--danger); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: auto; font-weight: 700; }
+
+        .main { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+        .top-bar { height: 70px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
+        .content { flex: 1; overflow-y: auto; padding: 30px; }
+        .section { display: none; animation: fadeUp 0.3s ease-out; }
+        .section.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* POS LAYOUT */
+        .pos-layout { display: flex; gap: 25px; height: calc(100vh - 160px); }
+        .pos-products { flex: 2; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; }
+        .pos-cart { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; }
+        .pos-grid { padding: 20px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .pos-item { border: 1px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; padding: 15px 10px; transition: 0.2s; background: white; }
+        .pos-item:hover { border-color: var(--brand); background: #eef2ff; transform: translateY(-2px); }
+        .pos-item img { width: 100%; height: 90px; object-fit: contain; margin-bottom: 10px; }
+
+        /* POS Cart Buttons UI */
+        .qty-btn { width: 32px; height: 32px; border-radius: 8px; border: none; font-weight: bold; font-size: 1.2rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: 0.1s; }
+        .qty-btn:active { transform: scale(0.9); }
+        .qty-btn.minus { background: #fee2e2; color: #dc2626; }
+        .qty-btn.plus { background: #dcfce7; color: #15803d; }
+        .qty-val { font-weight: 800; font-size: 1.1rem; width: 25px; text-align: center; display: inline-block; }
+
+        /* COMMON ELEMENTS */
+        .card-panel { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 25px; }
+        .panel-head { padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+        .table-responsive { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        th { background: #f9fafb; padding: 16px 20px; text-align: left; font-size: 0.8rem; color: var(--text-light); font-weight: 700; text-transform: uppercase; }
+        td { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 0.95rem; vertical-align: middle; }
+        
+        .btn { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; justify-content: center; font-size: 0.9rem; text-decoration: none; }
+        .btn-primary { background: var(--brand); color: white; }
+        .btn-print { background: #e0e7ff; color: var(--brand); border: 1px solid var(--brand); }
+        .btn-wa { background: #dcfce7; color: #15803d; border: 1px solid #22c55e; }
+        .btn-wa:hover { background: #22c55e; color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--brand); color: var(--brand); }
+        .inp { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 15px; font-size: 0.95rem; }
+
+        /* STATS & MODALS */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .stat-box { background: var(--card); padding: 25px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; align-items: center; gap: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal { background: white; width: 500px; padding: 35px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: zoomIn 0.2s; max-height:90vh; overflow-y:auto; }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .cat-select-container { border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 15px; max-height: 150px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 8px; background: #fafafa; }
+        .cat-checkbox-label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: white; border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; cursor: pointer; user-select: none; transition: 0.2s; }
+        .cat-checkbox-label:has(input:checked) { background: var(--brand); color: white; border-color: var(--brand); }
+        .cat-checkbox-label input { display: none; }
+
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+        .prod-card { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; position: relative; transition: 0.2s; }
+        .prod-card:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transform: translateY(-2px); }
+        .prod-card img { width: 100%; height: 160px; object-fit: contain; padding: 15px; border-bottom: 1px solid var(--border); }
+        .prod-info { padding: 15px; }
+        
+        .tags-row { display: flex; gap: 4px; overflow-x: auto; margin-bottom: 8px; scrollbar-width: none; }
+        .tag-pill { font-size: 0.7rem; background: #e0e7ff; color: var(--brand); padding: 2px 8px; border-radius: 10px; white-space: nowrap; font-weight: 700; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .menu-toggle { display: none; background: transparent; border: none; font-size: 1.8rem; color: var(--primary); cursor: pointer; margin-right: 15px; padding: 5px; }
+        
+        .file-upload-box { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; background: #f8fafc; margin-bottom: 10px; cursor: pointer; position: relative; }
+        .file-upload-box:hover { border-color: var(--brand); background: #eff6ff; }
+        .file-upload-box input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .file-upload-box i { font-size: 2rem; color: #94a3b8; margin-bottom: 5px; }
+        .file-upload-box p { font-size: 0.85rem; color: #64748b; font-weight: 600; margin: 0; }
+
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            .sidebar { position: fixed; left: -320px; top: 0; bottom: 0; width: 280px; z-index: 9999; display: flex !important; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 10px 0 20px rgba(0,0,0,0.3); }
+            .sidebar.open { left: 0; }
+            .main { padding: 0; width: 100%; }
+            .content { padding: 15px; }
+            .top-bar { height: auto; min-height: 70px; flex-wrap: wrap; padding: 15px; gap: 15px; }
+            .top-btns { width: 100%; justify-content: space-between; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+            .stat-box { padding: 15px; flex-direction: column; text-align: center; gap: 10px; }
+            .stat-box .stat-icon { width: 45px; height: 45px; font-size: 1.2rem; }
+            .stat-box h2 { font-size: 1.3rem; }
+            .pos-layout { flex-direction: column; height: calc(100vh - 140px); gap: 0; }
+            .pos-products { flex: 1.5; border-radius: 0; border-bottom: 2px solid var(--border); order: 1; }
+            .pos-cart { flex: 1; border-radius: 0; order: 2; border:none; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); }
+            .pos-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); padding: 10px; gap: 10px; }
+            .pos-item { padding: 10px 5px; } .pos-item img { height: 50px; }
+            .btn { padding: 8px 10px; font-size: 0.85rem; }
+      
+      @media print {
+    /* प्रिंट करते समय बटन पूरी तरह गायब हो जाएंगे */
+    .btn, #receipt-wa-btn, .modal-bg, .btn-primary, .btn-wa {
+        display: none !important;
+    }
+    
+    /* बिल का डिज़ाइन साफ़ दिखेगा */
+    #receipt-content {
+        display: block !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+   
+}
+
+  }
+    </style>
+</head>
+<body>
+
+    <audio id="notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h1 style="color:var(--brand); font-size:3rem; margin-bottom:10px"><i class="fa fa-layer-group"></i></h1>
+            <h2>Admin Access</h2><p style="color:#6b7280; margin-bottom:30px">JD Mart Secure Login</p>
+            <input id="adm-em" class="inp-log" placeholder="Email" value="tgangber19@gmail.com">
+            <input id="adm-ps" class="inp-log" type="password" placeholder="Password">
+            <button onclick="login()" id="log-btn" class="btn-log">Login Dashboard</button>
+            <button onclick="quickLogin()" id="bio-btn" class="btn-log" style="display:none; background:#10b981; margin-top:-10px;"><i class="fa fa-fingerprint"></i> Quick Login</button>
+            <p onclick="resetPass()" style="margin-top:15px; color:var(--brand); cursor:pointer; font-weight:600">Forgot Password?</p>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="logo"><i class="fa fa-shopping-bag"></i> JD Mart <span style="font-size:0.6rem; background:#374151; padding:3px 6px; border-radius:4px; margin-left:auto">V18 FINAL</span></div>
+        <div class="nav-item active" onclick="nav('dash')"><i class="fa fa-chart-pie"></i> Dashboard</div>
+        <div class="nav-item" onclick="nav('orders')"><i class="fa fa-box"></i> Orders <span id="ord-badge" class="badge">0</span></div>
+        <div class="nav-item" onclick="nav('pos')"><i class="fa fa-cash-register"></i> POS (Walk-in)</div>
+        <div class="nav-item" onclick="nav('prods')"><i class="fa fa-tags"></i> Products</div>
+        <div class="nav-item" onclick="nav('cats')"><i class="fa fa-th-large"></i> Categories</div>
+        <div class="nav-item" onclick="nav('villages')"><i class="fa fa-map-marker-alt"></i> Villages</div>
+        <div class="nav-item" onclick="nav('banners')"><i class="fa fa-images"></i> Banners</div>
+        <div class="nav-item" onclick="nav('notif-section')"><i class="fa fa-bullhorn"></i> Settings & Notif</div>
+        <div class="nav-item" onclick="nav('users')"><i class="fa fa-users"></i> Customers</div>
+        <div style="margin-top:auto"><div class="nav-item" onclick="logout()" style="color:#f87171; background:rgba(220,38,38,0.1)"><i class="fa fa-power-off"></i> Logout</div></div>
+    </div>
+
+    <div class="main" id="main">
+        <div class="top-bar">
+            <div style="display:flex; align-items:center;">
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+                <h2 id="pg-title" style="font-weight:800; color:var(--primary); margin:0;">Dashboard</h2>
+            </div>
+            <div class="top-btns" style="display:flex; gap:8px; flex-wrap:wrap; justify-content: flex-end;">
+                <button onclick="shareApp()" class="btn" style="background:#e0e7ff; color:#4338ca; border:1px solid #c7d2fe; padding:8px 12px;"><i class="fa fa-share-alt"></i> Share App</button>
+                <button onclick="togglePCMode()" id="pc-btn" class="btn" style="background:white; border:1px solid var(--border); padding:8px 12px;"><i class="fa fa-desktop"></i> PC Mode</button>
+                <button onclick="enableSound()" id="sound-btn" class="btn" style="background:#fef08a; color:#854d0e; border:1px solid #fde047; padding:8px 12px;"><i class="fa fa-bell"></i></button>
+                <button onclick="location.reload()" class="btn" style="background:white; border:1px solid var(--border); padding:8px 12px;"><i class="fa fa-sync"></i></button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="dash" class="section active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-weight: 800;">Sales Reports Overview</h3>
+                    <select id="dash-time-filter" class="inp" style="width: 170px; margin: 0;" onchange="calculateDashboardStats()">
+                        <option value="today">Today (आज)</option>
+                        <option value="yesterday">Yesterday (कल)</option>
+                        <option value="weekly">Weekly (इस हफ़्ते)</option>
+                        <option value="monthly">Monthly (इस महीने)</option>
+                        <option value="all">Total (अब तक का कुल)</option>
+                    </select>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box"><div class="stat-icon" style="background:#e0e7ff; color:#4f46e5"><i class="fa fa-box"></i></div><div><small>Orders</small><h2 id="d-ord">0</h2></div></div>
+                    <div class="stat-box"><div class="stat-icon" style="background:#dcfce7; color:#059669"><i class="fa fa-indian-rupee-sign"></i></div><div><small>Revenue</small><h2 id="d-rev">₹0</h2></div></div>
+                    <div class="stat-box"><div class="stat-icon" style="background:#fee2e2; color:#dc2626"><i class="fa fa-cube"></i></div><div><small>Products</small><h2 id="d-prod">0</h2></div></div>
+                    <div class="stat-box"><div class="stat-icon" style="background:#ffedd5; color:#d97706"><i class="fa fa-users"></i></div><div><small>Users</small><h2 id="d-usr">0</h2></div></div>
+                </div>
+
+                <div class="card-panel" style="margin-top: 25px;">
+                    <div class="panel-head">
+                        <h3><i class="fa fa-list-alt" style="color:var(--brand)"></i> <span id="report-list-title">Today's Orders</span> (ग्राहकों के नाम के साथ)</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time / ID</th>
+                                    <th>Customer Details (ग्राहक की जानकारी)</th>
+                                    <th>Total Bill</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-orders-summary-body">
+                                <tr><td colspan="4" style="text-align:center; color:#94a3b8;">फ़िल्टर के हिसाब से ऑर्डर लोड हो रहे हैं...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="margin-top: 25px;">
+                    <div class="panel-head"><h3><i class="fa fa-fire" style="color:#ea580c"></i> Top Selling Products (सबसे ज़्यादा बिकने वाले सामान)</h3></div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Rank</th><th>Product Name</th><th>Total Items Sold (कुल बिक्री)</th></tr>
+                            </thead>
+                            <tbody id="top-products-body">
+                                <tr><td colspan="3" style="text-align:center; color:#94a3b8;">ऑर्डर लोड हो रहे हैं...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="margin-top: 25px;">
+                    <div class="panel-head">
+                        <h3><i class="fa fa-user-check" style="color:#8b5cf6"></i> Customer History Search</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px; font-weight: 600;">किसी भी कस्टमर का नाम या नंबर लिखकर उसकी पूरी जन्म-कुंडली निकालें:</p>
+                        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                            <input type="text" id="cust-search-input" class="inp" placeholder="नाम या नंबर डालें (e.g. Rahul या 98765...)" style="margin:0; flex:1; min-width:200px;">
+                            <button onclick="searchCustomerHistory()" class="btn btn-primary" style="background:#8b5cf6; border:none;"><i class="fa fa-search"></i> Search History</button>
+                        </div>
+                        
+                        <div id="cust-search-results" style="background:#f8fafc; border:1px solid var(--border); border-radius:12px; padding:20px; display:none; animation: fadeUp 0.3s;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="margin-top: 25px;">
+                    <div class="panel-head">
+                        <h3><i class="fa fa-bell fa-shake" style="color:#eab308"></i> Smart Refill Alerts (तेल ख़त्म होने वाला है!)</h3>
+                        <button onclick="checkRefillAlerts()" class="btn btn-outline" style="border-color:#eab308; color:#ca8a04; padding:5px 10px; font-size:0.8rem;"><i class="fa fa-sync"></i> Scan</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Customer</th><th>Product</th><th>Last Bought</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="refill-alerts-body">
+                                <tr><td colspan="4" style="text-align:center; color:#94a3b8;">स्कैन किया जा रहा है...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="orders" class="section">
+                <div class="card-panel">
+                    <div class="panel-head"><h3>Live Orders Feed</h3><div style="display:flex; gap:10px"><input id="ord-search" class="inp" placeholder="Search..." style="margin:0; width:200px" oninput="searchTable('ord-tbl', this.value)"><button onclick="exportCSV()" class="btn" style="background:#059669; color:white">Export</button></div></div>
+                    <div class="table-responsive"><table id="ord-tbl"><thead><tr><th>ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody id="ord-body"></tbody></table></div>
+                </div>
+            </div>
+
+            <div id="pos" class="section">
+                <div class="pos-layout">
+                    <div class="pos-products">
+                        <div style="padding:15px; border-bottom:1px solid var(--border)">
+                            <div style="display:flex; gap:8px;">
+                                <input id="pos-find" oninput="filterPos(this.value)" class="inp" placeholder="Search product..." style="margin:0; flex:1;">
+                                <button onclick="const b=document.getElementById('pos-custom-box'); b.style.display = b.style.display==='none' ? 'flex' : 'none';" class="btn btn-outline" style="white-space:nowrap;">+ Custom Item</button>
+                            </div>
+                            <div id="pos-custom-box" style="display:none; gap:8px; margin-top:10px;">
+                                <input id="pos-custom-name" type="text" placeholder="नाम (जैसे गुड़ 960g)" class="inp" style="margin:0; flex:2;">
+                                <input id="pos-custom-qty" type="number" placeholder="Qty" value="1" class="inp" style="margin:0; width:60px;">
+                                <input id="pos-custom-price" type="number" placeholder="₹" class="inp" style="margin:0; width:70px;">
+                                <button onclick="addPosCustomItem()" class="btn btn-primary" style="padding:0 15px;">Add</button>
+                            </div>
+                        </div>
+                        <div id="pos-grid" class="pos-grid"></div>
+                    </div>
+                    <div class="pos-cart">
+                        <div style="padding:15px; background:#f9fafb; display:flex; justify-content:space-between"><span>Bill</span> <span onclick="posCart={}; renderCart()" style="color:red; cursor:pointer">Clear</span></div>
+                        <div id="pos-list" class="cart-list" style="flex:1; overflow-y:auto; padding:15px"></div>
+                        
+                        <div class="pos-cust-form" style="padding:10px 15px; border-top:1px solid var(--border); background:#f8fafc;">
+                            <div onclick="const box = document.getElementById('pos-cust-inputs'); box.style.display = box.style.display === 'none' ? 'block' : 'none';" style="color: var(--brand); font-weight: 700; font-size: 0.85rem; cursor: pointer; text-align: center; padding: 5px; border: 1px dashed #cbd5e1; border-radius: 6px;">
+                                <i class="fa fa-user-plus"></i> + Add Customer Info (Optional)
+                            </div>
+                            <div id="pos-cust-inputs" style="display: none; margin-top: 15px;">
+                                <div style="display:flex; gap:10px; margin-bottom:10px;"><input id="pos-c-name" class="inp" placeholder="Name" style="margin:0"><input id="pos-c-phone" class="inp" placeholder="Phone" style="margin:0"></div>
+                                <input id="pos-c-addr" class="inp" placeholder="Address/Village" style="margin:0">
+                            </div>
+                        </div>
+
+                        <div style="padding:20px; border-top:1px solid var(--border)">
+                            <div style="display:flex; justify-content:space-between; font-size:1.4rem; font-weight:800; margin-bottom:15px"><span>Total</span><span id="pos-total">₹0</span></div>
+                            <div style="display:flex; gap:10px"><button onclick="printCartOnly()" class="btn btn-outline" style="flex:1">Estimate</button><button onclick="posCheckout()" class="btn btn-primary" style="flex:1">Bill & Save</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="prods" class="section">
+                <div class="panel-head" style="border:none"><input id="prod-find" oninput="filterGrid('prod-list', this.value)" class="inp" placeholder="Search..." style="width:300px; margin:0"><button onclick="openModal('prod-mod')" class="btn btn-primary">+ Add Product</button></div>
+                <div id="prod-list" class="grid-cards"></div>
+            </div>
+
+            <div id="cats" class="section">
+                <div style="text-align:right; margin-bottom:20px"><button onclick="openModal('cat-mod')" class="btn btn-primary">+ Add Category</button></div>
+                <div id="cat-list" class="grid-cards"></div>
+            </div>
+
+            <div id="villages" class="section">
+                <div class="card-panel" style="max-width:800px">
+                    <div class="panel-head"><h3>Villages & Delivery Charges</h3><button onclick="openModal('vil-mod')" class="btn btn-primary">+ Add Village</button></div>
+                    <table><thead><tr><th>Village Name</th><th>Delivery Charge (< Limit)</th><th>Free Above (Limit)</th><th>Action</th></tr></thead><tbody id="vil-body"></tbody></table>
+                </div>
+            </div>
+
+            <div id="banners" class="section">
+                <div style="text-align:right; margin-bottom:20px"><button onclick="openModal('ban-mod')" class="btn btn-primary">+ Add Banner</button></div>
+                <div id="ban-list" class="grid-cards" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));"></div>
+            </div>
+
+            <div id="notif-section" class="section">
+                <div class="card-panel" style="max-width: 600px;">
+                    <div class="panel-head"><h3>Global Notification System</h3></div>
+                    <div style="padding: 25px;">
+                        <label class="inp-label">App Notice (होमपेज पर चलने वाली पट्टी)</label>
+                        <textarea id="app-notice-text" class="inp" style="height:80px;" placeholder="लिखें: आज सभी फलों पर 10% की छूट है!"></textarea>
+                        <button onclick="updateAppNotice()" class="btn btn-primary" style="width:100%;">Update Live Notice ✅</button>
+                        <button onclick="clearAppNotice()" class="btn" style="width:100%; margin-top:10px; background:#fee2e2; color:#dc2626;">Clear Notice ❌</button>
+                        <hr style="margin: 30px 0; border: none; border-top: 1px dashed #ddd;">
+                        <label class="inp-label">WhatsApp Broadcast (सभी कस्टमर्स को भेजें)</label>
+                        <button onclick="broadcastWhatsApp()" class="btn btn-wa" style="width:100%;"><i class="fa-brands fa-whatsapp"></i> Start WhatsApp Broadcaster</button>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="max-width: 600px; margin-top: 25px;">
+                    <div class="panel-head"><h3>Live Delivery Settings (Global Offer)</h3></div>
+                    <div style="padding: 25px;">
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <label class="inp-label">Delivery Charge (₹)</label>
+                                <input id="global-del-charge" type="number" class="inp" placeholder="Eg. 40" style="margin:0;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="inp-label">Free Delivery Above (₹)</label>
+                                <input id="global-free-limit" type="number" class="inp" placeholder="Eg. 599" style="margin:0;">
+                            </div>
+                        </div>
+                        <label class="inp-label">Minimum Order Value (₹) — 0 का मतलब कोई minimum नहीं</label>
+                        <input id="global-min-order" type="number" class="inp" placeholder="Eg. 99">
+                        <button onclick="updateDeliveryConfig()" class="btn btn-primary" style="width:100%; margin-top:10px;">Save Delivery Configuration 🚚✅</button>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="max-width: 600px; margin-top: 25px;">
+                    <div class="panel-head"><h3>⚡ Bulk Price Update (सभी प्रोडक्ट्स की कीमत एक साथ बदलें)</h3></div>
+                    <div style="padding: 25px;">
+                        <label class="inp-label">किन प्रोडक्ट्स पर लागू करें (Apply To)</label>
+                        <select id="bulk-price-scope" class="inp">
+                            <option value="__all__">सभी प्रोडक्ट्स (All Products)</option>
+                        </select>
+
+                        <div style="display:flex; gap:10px; margin: 15px 0;">
+                            <div style="flex:1;">
+                                <label class="inp-label">बदलाव (Change)</label>
+                                <select id="bulk-price-dir" class="inp" style="margin:0;">
+                                    <option value="inc">Increase (बढ़ाएं)</option>
+                                    <option value="dec">Decrease (घटाएं)</option>
+                                </select>
+                            </div>
+                            <div style="flex:1;">
+                                <label class="inp-label">Type</label>
+                                <select id="bulk-price-mode" class="inp" style="margin:0;">
+                                    <option value="pct">Percentage (%)</option>
+                                    <option value="flat">Fixed Amount (₹)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <label class="inp-label">Value</label>
+                        <input id="bulk-price-value" type="number" class="inp" placeholder="Eg. 5">
+
+                        <button onclick="applyBulkPriceUpdate()" class="btn btn-primary" style="width:100%; margin-top:10px;">Apply to All Prices Now ⚡</button>
+                        <p style="font-size:0.75rem; color:#94a3b8; margin-top:8px;">Note: नई कीमत नज़दीकी रुपये तक round होगी। यह action turant सभी चुने हुए प्रोडक्ट्स पर लागू हो जाएगा, वापस लेने के लिए दोबारा उल्टा बदलाव करना होगा।</p>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="max-width:800px">
+                    <div class="panel-head"><h3>Category Manual Price List</h3></div>
+                    <div style="padding: 25px;">
+                        <label class="inp-label">कैटेगरी चुनें (Select Category to Edit)</label>
+                        <select id="bulk-cat-select" class="inp" onchange="loadCategoryProductsForEdit(this.value)"></select>
+                        
+                        <div id="manual-price-list-container" style="max-height: 350px; overflow-y: auto; margin-top: 15px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; padding: 10px; display: none;">
+                            <div id="manual-price-rows"></div>
+                        </div>
+                        <button id="manual-save-all-btn" onclick="saveAllInlinePrices()" class="btn btn-primary" style="width:100%; margin-top:12px; display:none;">Save All Changes ✅</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="users" class="section">
+                <div class="card-panel"><div class="table-responsive"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Village</th></tr></thead><tbody id="usr-body"></tbody></table></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="receipt-mod" class="modal-bg" style="z-index: 99999;">
+        <div class="modal" style="width: 350px; padding: 25px; background: #f1f5f9; text-align: center;">
+            <div id="receipt-content" style="background: white; padding: 20px; border-radius: 12px; text-align: left; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="triggerPrint()" class="btn btn-primary" style="flex:1; padding:12px;"><i class="fa fa-print"></i> Print</button>
+                <a id="receipt-wa-btn" href="#" target="_blank" class="btn btn-wa" style="flex:1; padding:12px; text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> Send</a>
+                <button onclick="closeModal('receipt-mod')" class="btn" style="background:#fee2e2; color:#dc2626; padding:12px 15px;"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bill-edit-mod" class="modal-bg" style="z-index: 99998;">
+        <div class="modal" style="width: 480px; max-width: 92vw; max-height: 90vh; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3>🧾 Edit Bill</h3>
+                <button onclick="closeModal('bill-edit-mod')" class="btn" style="background:#fee2e2; color:#dc2626; padding:6px 12px;"><i class="fa fa-times"></i></button>
+            </div>
+
+            <label class="inp-label">Customer Name</label>
+            <input id="be-name" type="text" class="inp">
+            <label class="inp-label">Phone</label>
+            <input id="be-phone" type="text" class="inp">
+            <label class="inp-label">Address</label>
+            <input id="be-addr" type="text" class="inp">
+
+            <div style="border-top:1px dashed #e2e8f0; margin:15px 0 10px; padding-top:12px;">
+                <label class="inp-label">Products</label>
+                <div id="be-items" style="max-height:220px; overflow-y:auto;"></div>
+            </div>
+
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-bottom:10px;">
+                <label class="inp-label" style="margin-top:0;">कैटलॉग से Product जोड़ें</label>
+                <div style="display:flex; gap:8px;">
+                    <select id="be-add-select" class="inp" style="margin:0; flex:1;"></select>
+                    <button onclick="addBillEditProduct()" class="btn btn-primary" style="padding:0 15px;">+ Add</button>
+                </div>
+            </div>
+
+            <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:10px; margin-bottom:15px;">
+                <label class="inp-label" style="margin-top:0;">नया / अनलिस्टेड Product जोड़ें (जैसे गुड़ 960g)</label>
+                <div style="display:flex; gap:8px;">
+                    <input id="be-custom-name" type="text" placeholder="नाम" class="inp" style="margin:0; flex:2;">
+                    <input id="be-custom-qty" type="number" placeholder="Qty" value="1" class="inp" style="margin:0; width:60px;">
+                    <input id="be-custom-price" type="number" placeholder="₹" class="inp" style="margin:0; width:70px;">
+                    <button onclick="addBillEditCustomItem()" class="btn btn-primary" style="padding:0 15px;">+ Add</button>
+                </div>
+            </div>
+
+            <label class="inp-label">Delivery Charge (₹)</label>
+            <input id="be-delivery" type="number" class="inp" oninput="recalcBillEditTotal()" value="0">
+
+            <div style="display:flex; justify-content:space-between; padding:10px 0; font-size:0.9rem; color:#6b7280;"><span>Subtotal</span><span>₹<span id="be-subtotal">0</span></span></div>
+            <div style="display:flex; justify-content:space-between; padding:5px 0 15px; font-weight:800; font-size:1.1rem; border-top:1px dashed #e2e8f0;"><span>Total</span><span>₹<span id="be-total">0</span></span></div>
+
+            <button onclick="saveBillEdit()" class="btn btn-primary" style="width:100%;">Save Changes ✅</button>
+        </div>
+    </div>
+
+    <div id="prod-mod" class="modal-bg">
+        <div class="modal">
+            <h3 id="pm-head">Add Product</h3><br>
+            <input type="hidden" id="pm-id"><input type="hidden" id="pm-old">
+            <input id="pm-nm" class="inp" placeholder="Product Name">
+            <div style="display:flex; gap:10px">
+                <input id="pm-pr" type="number" class="inp" placeholder="Price (₹)">
+                <input id="pm-order" type="number" class="inp" placeholder="Sort Order (e.g. 1, 2)">
+            </div>
+            
+            <label style="font-size:0.8rem; font-weight:700; color:#6b7280; display:block; margin-bottom:5px">Image (Choose File OR Paste Link)</label>
+            <div class="file-upload-box">
+                <i class="fa fa-cloud-upload-alt"></i>
+                <p id="pm-file-text">Click to Select Gallery Image</p>
+                <input type="file" id="pm-file" accept="image/*" onchange="document.getElementById('pm-file-text').innerText = this.files[0].name">
+            </div>
+            <p style="text-align:center; font-size:0.75rem; color:#94a3b8; margin:-5px 0 10px 0;">-- OR --</p>
+            <input id="pm-img-link" class="inp" placeholder="Paste existing image link here">
+
+            <div style="margin-bottom:15px"><label style="font-size:0.8rem; font-weight:700; color:#6b7280; display:block; margin-bottom:5px">Select Categories</label><div id="pm-cat-box" class="cat-select-container"></div></div>
+
+            <div style="margin: 10px 0 15px; border-top:1px dashed #e5e7eb; padding-top:12px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:700; color:#6b7280; cursor:pointer;">
+                    <input type="checkbox" id="pm-has-variants" onchange="toggleVariantBox()"> इस product के multiple size/weight options हैं? (जैसे शक्कर: 1kg / 5kg)
+                </label>
+                <div id="pm-variant-box" style="display:none; margin-top:10px; border:1px solid #e5e7eb; border-radius:8px; padding:10px; background:#f9fafb;">
+                    <div id="pm-variant-rows"></div>
+                    <button type="button" onclick="addVariantRow()" class="btn" style="width:100%; margin-top:4px; border:1px dashed #cbd5e1; background:#fff; font-size:0.8rem;">+ Option जोड़ें</button>
+                    <p style="font-size:0.72rem; color:#94a3b8; margin: 8px 0 0;">कस्टमर को Add to Cart करने से पहले यह dropdown दिखेगा — जैसे "1 kg", "5 kg"। कम से कम 2 options डालें।</p>
+                </div>
+            </div>
+
+            <button onclick="saveProd()" id="pm-btn" class="btn btn-primary" style="width:100%">Save Product</button>
+            <button onclick="closeModal('prod-mod')" class="btn" style="width:100%; margin-top:10px; border:1px solid #ddd">Cancel</button>
+        </div>
+    </div>
+
+    <div id="cat-mod" class="modal-bg">
+        <div class="modal">
+            <h3 id="cm-head">Add Category</h3><br>
+            <input type="hidden" id="cm-id"><input type="hidden" id="cm-old">
+            <input id="cm-nm" class="inp" placeholder="Category Name">
+            <input id="cm-order" type="number" class="inp" placeholder="Sort Order (e.g. 1, 2, 3)">
+            
+            <label style="font-size:0.8rem; font-weight:700; color:#6b7280; display:block; margin-bottom:5px">Category Image</label>
+            <div class="file-upload-box">
+                <i class="fa fa-cloud-upload-alt"></i>
+                <p id="cm-file-text">Click to Select Gallery Image</p>
+                <input type="file" id="cm-file" accept="image/*" onchange="document.getElementById('cm-file-text').innerText = this.files[0].name">
+            </div>
+            <p style="text-align:center; font-size:0.75rem; color:#94a3b8; margin:-5px 0 10px 0;">-- OR --</p>
+            <input id="cm-img-link" class="inp" placeholder="Paste existing image link here">
+
+            <button onclick="saveCat()" id="cm-btn" class="btn btn-primary" style="width:100%">Save Category</button>
+            <button onclick="closeModal('cat-mod')" class="btn" style="width:100%; margin-top:10px; border:1px solid #ddd">Cancel</button>
+        </div>
+    </div>
+
+    <div id="ban-mod" class="modal-bg">
+        <div class="modal">
+            <h3>Add Banner</h3><br>
+            <div class="file-upload-box">
+                <i class="fa fa-cloud-upload-alt"></i>
+                <p id="bm-file-text">Click to Select Banner Image</p>
+                <input type="file" id="bm-file" accept="image/*" onchange="document.getElementById('bm-file-text').innerText = this.files[0].name">
+            </div>
+            <p style="text-align:center; font-size:0.75rem; color:#94a3b8; margin:-5px 0 10px 0;">-- OR --</p>
+            <input id="bm-img-link" class="inp" placeholder="Paste existing image link here...">
+
+            <button onclick="addBan()" id="bm-btn" class="btn btn-primary" style="width:100%">Add Banner</button>
+            <button onclick="closeModal('ban-mod')" class="btn" style="width:100%; margin-top:10px; border:1px solid #ddd">Cancel</button>
+        </div>
+    </div>
+
+    <div id="vil-mod" class="modal-bg">
+        <div class="modal">
+            <h3>Add Village Config</h3><br>
+            <input id="vm-nm" class="inp" placeholder="Village Name (e.g. Sohpur)">
+            <div style="display:flex; gap:10px">
+                <input id="vm-ch" type="number" class="inp" placeholder="Charge (e.g. 10)">
+                <input id="vm-fr" type="number" class="inp" placeholder="Free Above (e.g. 599)">
+            </div>
+            <button onclick="addVil()" class="btn btn-primary" style="width:100%">Save Village</button>
+            <button onclick="closeModal('vil-mod')" class="btn" style="width:100%; margin-top:10px; border:1px solid #ddd">Cancel</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, push, remove, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8twwcxHsqPeaF45GdY14dSBMIv0UJNu4",
+            databaseURL: "https://jdmart-d4409-default-rtdb.firebaseio.com",
+            projectId: "jdmart-d4409",
+            storageBucket: "jdmart-d4409.appspot.com", 
+            appId: "1:931488167884:web:877fbd682404056cad0f69"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const storage = getStorage(app); 
+        
+        setPersistence(auth, browserLocalPersistence).catch((error) => console.log(error));
+
+        let allProds=[], posCart={}, ordersData=[], initLoad=true, allCats=[], prevOrderCount=0;
+
+        window.onload = () => {
+            if(localStorage.getItem('jd_email') && localStorage.getItem('jd_pass')) {
+                document.getElementById('adm-em').value = localStorage.getItem('jd_email');
+                document.getElementById('adm-ps').value = localStorage.getItem('jd_pass');
+                document.getElementById('bio-btn').style.display = 'block';
+            }
+        };
+
+        window.quickLogin = () => { login(); };
+
+        window.shareApp = () => {
+            if (navigator.share) {
+                navigator.share({ title: 'JD Mart', text: 'झंकार किराना से ऑनलाइन आर्डर करें! अभी ऐप खोलें:', url: 'https://jdmart.in' }).catch(e => console.log('Share cancelled'));
+            } else { alert("Share this link with friends: https://jdmart.in"); }
+        };
+
+        window.togglePCMode = () => {
+            const vp = document.querySelector('meta[name="viewport"]');
+            const btn = document.getElementById('pc-btn');
+            if(vp.getAttribute('content').includes('1024')) {
+                vp.setAttribute('content', 'width=device-width, initial-scale=1.0');
+                btn.innerHTML = '<i class="fa fa-desktop"></i> PC Mode';
+            } else {
+                vp.setAttribute('content', 'width=1024');
+                btn.innerHTML = '<i class="fa fa-mobile-alt"></i> Mobile Mode';
+            }
+        };
+
+        window.enableSound = () => {
+            const audio = document.getElementById('notif');
+            audio.volume = 0; audio.play().then(()=>{ audio.pause(); audio.volume = 1; 
+            const btn = document.getElementById('sound-btn'); btn.innerHTML = '<i class="fa fa-check"></i>'; btn.style.background = '#dcfce7'; btn.style.color = '#15803d'; btn.style.borderColor = '#86efac'; }).catch(e=>console.log(e));
+        };
+
+        window.toggleSidebar = () => { document.getElementById('sidebar').classList.toggle('open'); };
+
+        window.login = async () => {
+            const b=document.getElementById('log-btn'); b.innerText="Verifying...";
+            try {
+                await signInWithEmailAndPassword(auth, document.getElementById('adm-em').value, document.getElementById('adm-ps').value);
+                localStorage.setItem('jd_email', document.getElementById('adm-em').value);
+                localStorage.setItem('jd_pass', document.getElementById('adm-ps').value);
+
+                document.getElementById('login-overlay').style.display='none'; document.getElementById('sidebar').style.display='flex'; document.getElementById('main').style.display='flex';
+                init();
+            } catch(e) { alert("Invalid Credentials"); b.innerText="Login Dashboard"; }
+        }
+        
+        window.logout = () => { localStorage.removeItem('jd_email'); localStorage.removeItem('jd_pass'); signOut(auth); location.reload(); }
+        window.resetPass = async () => { const em=document.getElementById('adm-em').value; if(!em) return alert("Enter Email"); try { await sendPasswordResetEmail(auth, em); alert("Link Sent!"); } catch(e) { alert(e.message); } }
+
+        function init() {
+            onValue(ref(db, 'products'), s => {
+                const d=s.val()||{}; allProds=Object.entries(d).map(([k,v])=>({id:k,...v})).sort((a,b)=>(a.order||0)-(b.order||0));
+                document.getElementById('d-prod').innerText=allProds.length;
+                renderProds(allProds); renderPosGrid(allProds);
+            });
+            
+            onValue(ref(db, 'orders'), s => {
+                const d=s.val()||{}; ordersData=Object.entries(d).reverse().map(([k,v])=>({key:k, val:v}));
+                const currentCount = ordersData.length;
+                
+                if(!initLoad && currentCount > prevOrderCount) { const audio = document.getElementById('notif'); audio.play().catch(()=>{}); }
+                prevOrderCount = currentCount; initLoad=false; 
+                renderOrders(ordersData);
+                calculateDashboardStats(); 
+            });
+            
+            onValue(ref(db, 'categories'), s => { const d=s.val()||{}; allCats = Object.entries(d).map(([k,v])=>({id:k,...v})).sort((a,b)=>(a.order||0)-(b.order||0)); renderCats(allCats); });
+            onValue(ref(db, 'users'), s => { document.getElementById('d-usr').innerText=Object.keys(s.val()||{}).length; document.getElementById('usr-body').innerHTML=Object.values(s.val()||{}).map(u=>`<tr><td>${u.savedAddress?.name||'Guest'}</td><td>${u.email||'-'}</td><td>${u.savedAddress?.phone||'-'}</td><td>${u.savedAddress?.village||'-'}</td></tr>`).join(''); });
+            onValue(ref(db, 'villages'), s => { document.getElementById('vil-body').innerHTML=Object.entries(s.val()||{}).map(([k,v])=>`<tr><td><b>${v.name}</b></td><td>₹${v.charge||0}</td><td>Above ₹${v.freeLimit||0}</td><td><button onclick="del('villages/${k}')" class="btn-primary" style="background:#ef4444; padding:5px 10px"><i class="fa fa-trash"></i></button></td></tr>`).join(''); });
+            
+            onValue(ref(db, 'banners'), s => renderBanners(s.val()||{}));
+
+            onValue(ref(db, 'app_settings/delivery'), s => {
+                const data = s.val();
+                if(data) {
+                    document.getElementById('global-del-charge').value = data.defaultCharge || 40;
+                    document.getElementById('global-free-limit').value = data.freeLimit || 599;
+                    document.getElementById('global-min-order').value = data.minOrderValue || 0;
+                }
+            });
+        }
+
+        const cleanUrl = (url) => url ? url.trim().replace(/['"]/g, '') : '';
+
+        const compressImage = (file, maxWidth = 800) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width; let height = img.height;
+                        if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    };
+                };
+            });
+        };
+
+        const uploadToFirebase = async (dataUrl, folderName) => {
+            const storageRef = sRef(storage, `${folderName}/IMG_${Date.now()}.jpg`);
+            await uploadString(storageRef, dataUrl, 'data_url');
+            return await getDownloadURL(storageRef);
+        };
+
+        function renderProds(list) {
+            document.getElementById('prod-list').innerHTML=list.map(p => {
+                let cats=[]; if(Array.isArray(p.category)) cats=p.category; else if(p.category) cats=[p.category];
+                let imgUrl = cleanUrl(p.image);
+                return `<div class="prod-card"><img src="${imgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400?text=No+Image'"><div class="prod-info"><div class="tags-row">${cats.map(c=>`<span class="tag-pill">${c}</span>`).join('')}</div><div style="font-weight:700;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div><div style="color:var(--brand);font-weight:800">₹${p.price}</div><div style="font-size:0.75rem; color:#6b7280; margin-top:5px">Order: ${p.order||0}</div><div style="display:flex;justify-content:space-between;margin-top:15px;border-top:1px dashed #eee;padding-top:10px"><label class="switch"><input type="checkbox" ${p.inStock?'checked':''} onchange="togStock('${p.id}',this.checked)"><span class="slider"></span></label><div style="display:flex;gap:8px"><button onclick="editProd('${p.id}')" style="background:#e0e7ff;color:#4338ca;border:none;width:32px;height:32px;border-radius:8px"><i class="fa fa-pen"></i></button><button onclick="del('products/${p.id}')" style="background:#fee2e2;color:#dc2626;border:none;width:32px;height:32px;border-radius:8px"><i class="fa fa-trash"></i></button></div></div></div></div>`
+            }).join('');
+        }
+
+        function renderCats(list) {
+            document.getElementById('cat-list').innerHTML=list.map(c=>{
+                let imgUrl = cleanUrl(c.image);
+                return `<div class="prod-card" style="text-align:center;padding:20px"><div style="position:absolute;top:10px;right:10px;display:flex;gap:5px"><button onclick="editCat('${c.id}')" style="background:#e0e7ff;color:#4338ca;border:none;width:25px;height:25px;border-radius:50%;cursor:pointer"><i class="fa fa-pen" style="font-size:0.7rem"></i></button><button onclick="del('categories/${c.id}')" style="background:#fee2e2;color:red;border:none;width:25px;height:25px;border-radius:50%;cursor:pointer"><i class="fa fa-times" style="font-size:0.7rem"></i></button></div><img src="${imgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400?text=No+Image'" style="width:100px;height:100px;object-fit:cover;margin-bottom:15px;border-radius:50%;border:3px solid #e0e7ff"><div style="font-weight:700">${c.name}</div><div style="font-size:0.75rem; color:#6b7280; margin-top:5px">Order: ${c.order||0}</div></div>`
+            }).join('');
+            
+            document.getElementById('pm-cat-box').innerHTML=list.map(c=>`<label class="cat-checkbox-label"><input type="checkbox" value="${c.name}" class="cat-check"><span>${c.name}</span></label>`).join('');
+            document.getElementById('bulk-cat-select').innerHTML = `<option value="" disabled selected>कैटेगरी चुनें</option>` + list.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            document.getElementById('bulk-price-scope').innerHTML = `<option value="__all__">सभी प्रोडक्ट्स (All Products)</option>` + list.map(c => `<option value="${c.name}">Only: ${c.name}</option>`).join('');
+        }
+
+        function renderBanners(d) { 
+            document.getElementById('ban-list').innerHTML=Object.entries(d).map(([k,v])=>{
+                let imgUrl = cleanUrl(v.image);
+                return `<div style="position:relative"><img src="${imgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400?text=No+Image'" style="width:100%;border-radius:10px"><button onclick="del('banners/${k}')" style="position:absolute;top:5px;right:5px;background:red;color:white;border:none;padding:5px 10px;border-radius:4px"><i class="fa fa-trash"></i></button></div>`
+            }).join(''); 
+        }
+
+        function renderOrders(list) {
+            document.getElementById('ord-body').innerHTML=list.map(item=>{
+                const k=item.key, v=item.val;
+                let name='Guest', phone='-', addr='Standard Delivery';
+                if(v.customer) { name=v.customer.name; phone=v.customer.phone; addr=v.customer.address; }
+                else if(v.address && typeof v.address==='object') { name=v.address.name; phone=v.address.phone; addr=v.address.village||v.address.address; }
+                else { name=v.name||name; phone=v.phone||phone; addr=v.address||addr; }
+
+                let cleanPh = String(phone).replace(/\D/g, '').slice(-10);
+                let waLink = `https://wa.me/91${cleanPh}?text=Namaste%20${encodeURIComponent(name)},%20Your%20Order%20%23${k.slice(-5)}%20(Amount:%20Rs.${v.total})%20is%20${v.status}.`;
+
+                let itemsStr = v.items ? (Array.isArray(v.items)?v.items:Object.values(v.items)).map(i=>`${i.title}(${i.qty})`).join(', ') : '';
+                let pItems = v.items ? (Array.isArray(v.items)?v.items:Object.values(v.items)).map(i=>`${i.title}::${i.qty}::${v.price||i.price}`).join('||') : '';
+                let stColor='#e5e7eb'; if(v.status==='Placed') stColor='#fef3c7'; if(v.status==='Delivered') stColor='#dcfce7'; if(v.status==='Out') stColor='#e0e7ff';
+                
+                let safeName = encodeURIComponent(name); let safePhone = encodeURIComponent(phone); let safeAddr = encodeURIComponent(addr); let safeItems = encodeURIComponent(pItems);
+
+                return `<tr><td><b>#${k.slice(-5).toUpperCase()}</b><br><small>${new Date(v.timestamp).toLocaleDateString()}</small></td><td><b>${name}</b><br><small>${phone}</small><br><small style="color:#6b7280">${addr}</small></td><td><div style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${itemsStr}">${itemsStr}</div></td><td><b>₹${v.total}</b></td><td><select onchange="updStat('${k}',this.value)" style="border:1px solid #ddd;padding:6px;border-radius:6px;background:${stColor}"><option>${v.status}</option><option>Placed</option><option>Packed</option><option>Out</option><option>Delivered</option></select></td><td><div style="display:flex;gap:5px"><button onclick="openBillEdit('${k}')" class="btn" style="background:#e0e7ff;color:#4338ca;"><i class="fa fa-pen"></i></button><button onclick="printOrderSafe('${k}','${safeName}','${safePhone}','${safeAddr}','${v.total}','${safeItems}')" class="btn btn-print"><i class="fa fa-print"></i></button><a href="${waLink}" target="_blank" class="btn btn-wa"><i class="fa-brands fa-whatsapp"></i></a></div></td></tr>`;
+            }).join('');
+        }
+        
+        /* ===================== BILL EDIT (add/remove products, custom items, delivery) ===================== */
+        let editingOrderKey = null;
+        let editingOrderItems = [];
+
+        window.openBillEdit = (key) => {
+            const order = ordersData.find(o => o.key === key);
+            if (!order) return;
+            const v = order.val;
+            editingOrderKey = key;
+
+            let name = '', phone = '', addr = '';
+            if (v.customer) { name = v.customer.name; phone = v.customer.phone; addr = v.customer.address; }
+            else { name = v.name || ''; phone = v.phone || ''; addr = v.address || ''; }
+
+            document.getElementById('be-name').value = name;
+            document.getElementById('be-phone').value = phone;
+            document.getElementById('be-addr').value = addr;
+
+            editingOrderItems = v.items
+                ? (Array.isArray(v.items) ? v.items : Object.values(v.items)).map(i => ({ title: i.title, price: Number(i.price), qty: Number(i.qty) }))
+                : [];
+
+            const subtotal = editingOrderItems.reduce((s, i) => s + i.price * i.qty, 0);
+            const guessedDelivery = Math.max(0, Number(v.total || 0) - subtotal);
+            document.getElementById('be-delivery').value = guessedDelivery;
+
+            renderBillEditItems();
+            populateBillEditProductSelect();
+            document.getElementById('bill-edit-mod').style.display = 'flex';
+        };
+
+        function renderBillEditItems() {
+            const wrap = document.getElementById('be-items');
+            wrap.innerHTML = editingOrderItems.map((it, idx) => `
+                <div style="display:flex; gap:6px; align-items:center; margin-bottom:8px; background:#f9fafb; padding:8px; border-radius:8px;">
+                    <input type="text" value="${it.title}" oninput="updateBillItem(${idx},'title',this.value)" style="flex:2; border:1px solid #e2e8f0; border-radius:6px; padding:6px; font-size:0.85rem;">
+                    <input type="number" value="${it.qty}" oninput="updateBillItem(${idx},'qty',this.value)" style="width:50px; border:1px solid #e2e8f0; border-radius:6px; padding:6px; font-size:0.85rem;">
+                    <input type="number" value="${it.price}" oninput="updateBillItem(${idx},'price',this.value)" style="width:65px; border:1px solid #e2e8f0; border-radius:6px; padding:6px; font-size:0.85rem;">
+                    <button onclick="removeBillItem(${idx})" style="background:#fee2e2; color:#dc2626; border:none; border-radius:6px; width:30px; height:30px; flex-shrink:0;"><i class="fa fa-times"></i></button>
+                </div>
+            `).join('') || '<p style="text-align:center; color:#94a3b8; padding:10px;">कोई product नहीं</p>';
+            recalcBillEditTotal();
+        }
+
+        window.updateBillItem = (idx, field, val) => {
+            editingOrderItems[idx][field] = (field === 'title') ? val : Number(val);
+            recalcBillEditTotal();
+        };
+
+        window.removeBillItem = (idx) => {
+            editingOrderItems.splice(idx, 1);
+            renderBillEditItems();
+        };
+
+        function populateBillEditProductSelect() {
+            document.getElementById('be-add-select').innerHTML = '<option value="" disabled selected>Product चुनें...</option>' + allProds.map(p => `<option value="${p.id}">${p.title} — ₹${p.price}</option>`).join('');
+        }
+
+        window.addBillEditProduct = () => {
+            const sel = document.getElementById('be-add-select');
+            const p = allProds.find(x => x.id === sel.value);
+            if (!p) return alert('Product चुनें');
+            editingOrderItems.push({ title: p.title, price: p.price, qty: 1 });
+            renderBillEditItems();
+            sel.value = '';
+        };
+
+        window.addBillEditCustomItem = () => {
+            const name = document.getElementById('be-custom-name').value.trim();
+            const price = Number(document.getElementById('be-custom-price').value);
+            const qty = Number(document.getElementById('be-custom-qty').value) || 1;
+            if (!name || !price) return alert('नाम और price डालें');
+            editingOrderItems.push({ title: name, price, qty });
+            renderBillEditItems();
+            document.getElementById('be-custom-name').value = '';
+            document.getElementById('be-custom-price').value = '';
+            document.getElementById('be-custom-qty').value = '1';
+        };
+
+        function recalcBillEditTotal() {
+            const subtotal = editingOrderItems.reduce((s, i) => s + i.price * i.qty, 0);
+            const delivery = Number(document.getElementById('be-delivery').value) || 0;
+            document.getElementById('be-subtotal').innerText = subtotal;
+            document.getElementById('be-total').innerText = subtotal + delivery;
+        }
+
+        window.saveBillEdit = () => {
+            const name = document.getElementById('be-name').value.trim();
+            const phone = document.getElementById('be-phone').value.trim();
+            const addr = document.getElementById('be-addr').value.trim();
+            const delivery = Number(document.getElementById('be-delivery').value) || 0;
+            if (!name || !phone || !addr) return alert('Name, phone, address ज़रूरी है');
+            if (editingOrderItems.length === 0) return alert('कम से कम एक product होना चाहिए');
+
+            const subtotal = editingOrderItems.reduce((s, i) => s + i.price * i.qty, 0);
+            const total = subtotal + delivery;
+
+            update(ref(db, `orders/${editingOrderKey}`), {
+                customer: { name, phone, address: addr },
+                items: editingOrderItems,
+                total
+            }).then(() => {
+                alert('Bill update हो गया! ✅');
+                document.getElementById('bill-edit-mod').style.display = 'none';
+            }).catch(e => alert('Error: ' + e.message));
+        };
+
+        window.printOrderSafe = (id, safeName, safePhone, safeAddr, total, safeItems) => { printInv(id, decodeURIComponent(safeName), decodeURIComponent(safePhone), decodeURIComponent(safeAddr), total, decodeURIComponent(safeItems)); };
+
+        window.toggleVariantBox = () => {
+            const box = document.getElementById('pm-variant-box');
+            const has = document.getElementById('pm-has-variants').checked;
+            box.style.display = has ? 'block' : 'none';
+            if (has && document.getElementById('pm-variant-rows').children.length === 0) { addVariantRow(); addVariantRow(); }
+        };
+
+        window.addVariantRow = (label = '', price = '') => {
+            const row = document.createElement('div');
+            row.className = 'variant-row';
+            row.style.cssText = 'display:flex; gap:8px; margin-bottom:8px; align-items:center;';
+            row.innerHTML = `<input type="text" class="inp var-label" placeholder="Label e.g. 1 kg" value="${label}" style="margin:0; flex:2;"><input type="number" class="inp var-price" placeholder="Price ₹" value="${price}" style="margin:0; flex:1;"><button type="button" onclick="this.parentElement.remove()" style="background:#fee2e2; color:#dc2626; border:none; border-radius:6px; width:32px; height:32px; cursor:pointer; flex-shrink:0;"><i class="fa fa-times"></i></button>`;
+            document.getElementById('pm-variant-rows').appendChild(row);
+        };
+
+        function collectVariants() {
+            return Array.from(document.querySelectorAll('#pm-variant-rows .variant-row')).map(row => ({
+                label: row.querySelector('.var-label').value.trim(),
+                price: Number(row.querySelector('.var-price').value)
+            })).filter(v => v.label && v.price > 0);
+        }
+
+        window.saveProd = async () => {
+            const b=document.getElementById('pm-btn'); b.innerText="Saving..."; b.disabled = true;
+            const id=document.getElementById('pm-id').value, n=document.getElementById('pm-nm').value, p=document.getElementById('pm-pr').value, order=document.getElementById('pm-order').value;
+            const old=document.getElementById('pm-old').value, linkInput=document.getElementById('pm-img-link').value.trim();
+            const fileInput = document.getElementById('pm-file');
+            
+            const selectedCats=Array.from(document.querySelectorAll('.cat-check:checked')).map(cb=>cb.value);
+            const hasVariants = document.getElementById('pm-has-variants').checked;
+            const variants = hasVariants ? collectVariants() : [];
+            if(!n || selectedCats.length===0) { b.innerText="Save Product"; b.disabled=false; return alert("Details missing"); }
+            if(!hasVariants && !p) { b.innerText="Save Product"; b.disabled=false; return alert("Details missing"); }
+            if(hasVariants && variants.length < 2) { b.innerText="Save Product"; b.disabled=false; return alert("कम से कम 2 options डालें या checkbox हटा दें"); }
+            
+            let finalImageUrl = old;
+            try {
+                if (fileInput.files.length > 0) {
+                    b.innerText="Uploading HD Image...";
+                    const compressedData = await compressImage(fileInput.files[0], 600);
+                    finalImageUrl = await uploadToFirebase(compressedData, 'products');
+                } else if (linkInput !== "") {
+                    finalImageUrl = linkInput.replace(/['"]/g, '');
+                }
+                
+                const d={title:n, price: hasVariants ? variants[0].price : Number(p), category:selectedCats, image:finalImageUrl, inStock:true, order:Number(order||0), variants: hasVariants ? variants : null};
+                if(id) await update(ref(db, `products/${id}`), d); else await push(ref(db, 'products'), d);
+                closeModal('prod-mod');
+            } catch(e) { alert("Upload Failed: " + e.message); }
+            b.innerText="Save Product"; b.disabled = false;
+        }
+
+        window.editProd = (id) => {
+            const p=allProds.find(x=>x.id===id); document.getElementById('pm-head').innerText="Edit Product"; document.getElementById('pm-id').value=id; document.getElementById('pm-nm').value=p.title; document.getElementById('pm-pr').value=p.price; document.getElementById('pm-old').value=p.image; document.getElementById('pm-img-link').value=p.image; document.getElementById('pm-order').value=p.order||0; document.getElementById('pm-file-text').innerText="Click to change Image"; document.getElementById('pm-file').value="";
+            document.querySelectorAll('.cat-check').forEach(cb=>cb.checked=false);
+            let pCats=Array.isArray(p.category)?p.category:[p.category]; pCats.forEach(c=>{ const cb=document.querySelector(`.cat-check[value="${c}"]`); if(cb) cb.checked=true; });
+
+            document.getElementById('pm-variant-rows').innerHTML = '';
+            const hasV = !!(p.variants && p.variants.length > 0);
+            document.getElementById('pm-has-variants').checked = hasV;
+            document.getElementById('pm-variant-box').style.display = hasV ? 'block' : 'none';
+            if (hasV) p.variants.forEach(v => addVariantRow(v.label, v.price));
+
+            openModal('prod-mod');
+        }
+
+        window.saveCat = async () => {
+            const b=document.getElementById('cm-btn'); b.innerText="Saving..."; b.disabled = true;
+            const id=document.getElementById('cm-id').value, n=document.getElementById('cm-nm').value, order=document.getElementById('cm-order').value, old=document.getElementById('cm-old').value;
+            const linkInput=document.getElementById('cm-img-link').value.trim(), fileInput = document.getElementById('cm-file');
+            
+            if(!n) { b.innerText="Save Category"; b.disabled=false; return alert("Name required"); }
+            
+            let finalImageUrl = old;
+            try {
+                if (fileInput.files.length > 0) {
+                    b.innerText="Uploading...";
+                    const compressedData = await compressImage(fileInput.files[0], 400);
+                    finalImageUrl = await uploadToFirebase(compressedData, 'categories');
+                } else if (linkInput !== "") {
+                    finalImageUrl = linkInput.replace(/['"]/g, '');
+                }
+
+                if(id) await update(ref(db, `categories/${id}`), {name:n, image:finalImageUrl, order:Number(order||0)}); else await push(ref(db, 'categories'), {name:n, image:finalImageUrl, order:Number(order||0)});
+                closeModal('cat-mod');
+            } catch(e) { alert("Upload Failed: " + e.message); }
+            b.innerText="Save Category"; b.disabled = false;
+        }
+
+        window.editCat = (id) => { const c = allCats.find(x=>x.id===id); document.getElementById('cm-head').innerText="Edit Category"; document.getElementById('cm-id').value=id; document.getElementById('cm-nm').value=c.name; document.getElementById('cm-old').value=c.image; document.getElementById('cm-img-link').value=c.image; document.getElementById('cm-order').value=c.order||0; document.getElementById('cm-file-text').innerText="Click to change Image"; document.getElementById('cm-file').value=""; openModal('cat-mod'); }
+        window.addCat = () => { document.getElementById('cm-head').innerText="Add Category"; document.getElementById('cm-id').value=''; document.getElementById('cm-nm').value=''; document.getElementById('cm-old').value=''; document.getElementById('cm-img-link').value=''; document.getElementById('cm-order').value=''; document.getElementById('cm-file-text').innerText="Click to Select Gallery Image"; document.getElementById('cm-file').value=""; openModal('cat-mod'); }
+
+        window.addBan = async () => { 
+            const b=document.getElementById('bm-btn'); b.innerText="Uploading..."; b.disabled=true;
+            const linkInput=document.getElementById('bm-img-link').value.trim(), fileInput = document.getElementById('bm-file');
+            
+            try {
+                if (fileInput.files.length > 0) {
+                    const compressedData = await compressImage(fileInput.files[0], 1200);
+                    let finalImageUrl = await uploadToFirebase(compressedData, 'banners');
+                    await push(ref(db, 'banners'), {image:finalImageUrl});
+                } else if (linkInput !== "") {
+                    await push(ref(db, 'banners'), {image:linkInput.replace(/['"]/g, '')});
+                }
+                closeModal('ban-mod');
+            } catch(e) { alert("Upload Failed: " + e.message); }
+            b.innerText="Add Banner"; b.disabled=false;
+        }
+
+        window.addVil = () => { const n=document.getElementById('vm-nm').value, c=document.getElementById('vm-ch').value, f=document.getElementById('vm-fr').value; if(n){ push(ref(db, 'villages'), {name:n, charge:Number(c||0), freeLimit:Number(f||0)}); closeModal('vil-mod'); } }
+        window.del = (p) => { if(confirm("Delete?")) remove(ref(db, p)); }
+        window.togStock = (id,s) => update(ref(db, `products/${id}`), {inStock:s});
+        window.updStat = (id,s) => update(ref(db, `orders/${id}`), {status:s});
+
+        window.exportCSV = () => {
+            let csv = "ID,Date,Name,Phone,Address,Items,Total,Status\n";
+            ordersData.forEach(item => { const k=item.key, v=item.val; let name='Guest', phone='-', addr='-'; if(v.customer) { name=v.customer.name; phone=v.customer.phone; addr=v.customer.address; } else if(v.address && typeof v.address==='object') { name=v.address.name; phone=v.address.phone; addr=v.address.village||v.address.address; } let itemsStr = v.items ? (Array.isArray(v.items)?v.items:Object.values(v.items)).map(i=>`${i.title}(${i.qty})`).join('; ') : ''; csv += `${k},${new Date(v.timestamp).toLocaleDateString()},${name},${phone},"${addr}",${itemsStr},${v.total},${v.status}\n`; });
+            const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'jdmart_orders.csv'; a.click();
+        }
+
+        window.updateAppNotice = () => { const text = document.getElementById('app-notice-text').value; if(!text) return alert("Enter some text!"); set(ref(db, 'app_settings/notice'), { message: text, timestamp: Date.now() }).then(() => alert("Notice updated on User App!")); };
+        window.clearAppNotice = () => { set(ref(db, 'app_settings/notice'), { message: "", timestamp: Date.now() }).then(() => alert("Notice Cleared!")); document.getElementById('app-notice-text').value = ''; };
+        
+        window.broadcastWhatsApp = () => {
+            const msg = prompt("Enter message to send on WhatsApp:"); if(!msg) return;
+            const uniquePhones = [...new Set(ordersData.map(o => o.val.customer?.phone).filter(p => p && p.length >= 10))];
+            if(uniquePhones.length === 0) return alert("No customer numbers found!");
+            alert(`Found ${uniquePhones.length} customers. Opening WhatsApp tabs one by one (please allow popups)...`);
+            uniquePhones.forEach((ph, index) => { setTimeout(() => { window.open(`https://wa.me/91${ph.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(msg)}`, '_blank'); }, index * 2000); });
+        };
+
+        // 💡 Global Delivery Configuration Logic
+        window.updateDeliveryConfig = () => {
+            const charge = document.getElementById('global-del-charge').value;
+            const limit = document.getElementById('global-free-limit').value;
+            const minOrder = document.getElementById('global-min-order').value || 0;
+            if(!charge || !limit) return alert("कृपया दोनों बॉक्स भरें!");
+            
+            set(ref(db, 'app_settings/delivery'), {
+                defaultCharge: Number(charge),
+                freeLimit: Number(limit),
+                minOrderValue: Number(minOrder),
+                timestamp: Date.now()
+            }).then(() => alert("डिलीवरी चार्ज लाइव अपडेट हो गया है! 🚀"));
+        };
+
+        // 💡 Advanced Dashboard Stats & Orders Filter
+        window.calculateDashboardStats = () => {
+            const filterType = document.getElementById('dash-time-filter').value;
+            const now = Date.now();
+            let startTime = 0;
+
+            const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+            const todayTime = startOfToday.getTime();
+            
+            if (filterType === 'today') {
+                startTime = todayTime;
+                document.getElementById('report-list-title').innerText = "Today's Orders (आज के ऑर्डर्स)";
+            } else if (filterType === 'yesterday') {
+                startTime = todayTime - (24 * 60 * 60 * 1000);
+                document.getElementById('report-list-title').innerText = "Yesterday's Orders (कल के ऑर्डर्स)";
+            } else if (filterType === 'weekly') {
+                startTime = now - (7 * 24 * 60 * 60 * 1000);
+                document.getElementById('report-list-title').innerText = "This Week's Orders (इस हफ़्ते के ऑर्डर्स)";
+            } else if (filterType === 'monthly') {
+                startTime = now - (30 * 24 * 60 * 60 * 1000);
+                document.getElementById('report-list-title').innerText = "This Month's Orders (इस महीने के ऑर्डर्स)";
+            } else if (filterType === 'all') {
+                startTime = 0; // शुरू से अब तक
+                document.getElementById('report-list-title').innerText = "Total Orders (अब तक के सारे ऑर्डर्स)";
+            }
+
+            let filteredOrders = [];
+            if (filterType === 'yesterday') {
+                filteredOrders = ordersData.filter(o => o.val.timestamp >= startTime && o.val.timestamp < todayTime);
+            } else {
+                filteredOrders = ordersData.filter(o => o.val.timestamp >= startTime);
+            }
+
+            document.getElementById('d-ord').innerText = filteredOrders.length;
+            let revenue = 0; filteredOrders.forEach(o => revenue += Number(o.val.total || 0));
+            document.getElementById('d-rev').innerText = "₹" + revenue.toLocaleString('en-IN');
+
+            // Daily Orders Table Update
+            document.getElementById('dash-orders-summary-body').innerHTML = filteredOrders.length > 0 ? filteredOrders.map(item => {
+                const k = item.key; const v = item.val;
+                let name = 'Guest', phone = '-', addr = 'Standard Delivery';
+                
+                if(v.customer) { name = v.customer.name; phone = v.customer.phone; addr = v.customer.address; }
+                else if(v.address && typeof v.address === 'object') { name = v.address.name; phone = v.address.phone; addr = v.address.village || v.address.address; }
+                else { name = v.name || name; phone = v.phone || phone; addr = v.address || addr; }
+
+                let timeStr = new Date(v.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                let stColor = '#e5e7eb'; if(v.status==='Placed') stColor='#fef3c7'; if(v.status==='Delivered') stColor='#dcfce7'; if(v.status==='Out') stColor='#e0e7ff';
+
+                return `
+                    <tr>
+                        <td><span style="font-weight:800; color:var(--brand);">#${k.slice(-5).toUpperCase()}</span><br><small style="color:#64748b; font-weight:600;">⏰ ${timeStr}</small></td>
+                        <td>
+                            <b style="font-size:0.95rem;">${name}</b> <small style="color:#64748b; font-weight:700;">(${phone})</small><br>
+                            <small style="color:#475569; font-weight:600;"><i class="fa fa-map-marker-alt" style="color:#ef4444"></i> ${addr}</small>
+                        </td>
+                        <td><b style="color:#111827;">₹${v.total}</b></td>
+                        <td><span style="background:${stColor}; padding:4px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">${v.status}</span></td>
+                    </tr>
+                `;
+            }).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px; color:#94a3b8;">इस टाइम फ़िल्टर में कोई ऑर्डर नहीं मिला।</td></tr>`;
+
+            // Top Selling Products All-Time Trend
+            let productCounts = {};
+            ordersData.forEach(o => {
+                const items = o.val.items ? (Array.isArray(o.val.items) ? o.val.items : Object.values(o.val.items)) : [];
+                items.forEach(i => { if (i.title) { productCounts[i.title] = (productCounts[i.title] || 0) + Number(i.qty || 1); } });
+            });
+            let topProducts = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            document.getElementById('top-products-body').innerHTML = topProducts.length > 0 ? topProducts.map((p, idx) => `
+                <tr>
+                    <td><b>#${idx + 1}</b></td>
+                    <td><i class="fa fa-cube" style="color:var(--brand)"></i> ${p[0]}</td>
+                    <td><span class="badge" style="background:var(--success); margin:0;">${p[1]} items sold</span></td>
+                </tr>
+            `).join('') : `<tr><td colspan="3" style="text-align:center; color:#94a3b8;">अभी कोई बिक्री डेटा नहीं है।</td></tr>`;
+
+            // Check Refill Alerts
+            checkRefillAlerts();
+        };
+
+        // 💡 Customer History Search Logic
+        window.searchCustomerHistory = () => {
+            const query = document.getElementById('cust-search-input').value.toLowerCase().trim();
+            const resBox = document.getElementById('cust-search-results');
+            
+            if(!query) {
+                alert("कृपया कस्टमर का नाम या नंबर डालें!");
+                return;
+            }
+
+            let custOrders = ordersData.filter(o => {
+                const v = o.val;
+                let name = '', phone = '';
+                if(v.customer) { name = v.customer.name || ''; phone = v.customer.phone || ''; }
+                else if(v.address && typeof v.address === 'object') { name = v.address.name || ''; phone = v.address.phone || ''; }
+                else { name = v.name || ''; phone = v.phone || ''; }
+                
+                return name.toLowerCase().includes(query) || String(phone).includes(query);
+            });
+
+            if(custOrders.length === 0) {
+                resBox.style.display = 'block';
+                resBox.innerHTML = `<p style="color:#ef4444; text-align:center; margin:0; font-weight:800; font-size:1.1rem;"><i class="fa fa-triangle-exclamation"></i> इस नाम या नंबर से अब तक कोई ऑर्डर नहीं मिला।</p>`;
+                return;
+            }
+
+            let totalSpent = 0;
+            let boughtItems = {}; 
+
+            custOrders.forEach(o => {
+                totalSpent += Number(o.val.total || 0);
+                const items = o.val.items ? (Array.isArray(o.val.items) ? o.val.items : Object.values(o.val.items)) : [];
+                items.forEach(i => {
+                    if(i.title) {
+                        boughtItems[i.title] = (boughtItems[i.title] || 0) + Number(i.qty || 1);
+                    }
+                });
+            });
+
+            let itemsHtml = Object.entries(boughtItems).sort((a,b) => b[1] - a[1]).map(([title, qty]) => 
+                `<span style="display:inline-flex; align-items:center; gap:5px; background:#e0e7ff; color:#4338ca; padding:6px 12px; border-radius:20px; font-size:0.85rem; margin:4px; font-weight:800; border:1px solid #c7d2fe;">
+                    ${title} <span style="background:#4338ca; color:white; padding:2px 6px; border-radius:10px; font-size:0.7rem;">x${qty}</span>
+                </span>`
+            ).join('');
+
+            resBox.style.display = 'block';
+            resBox.innerHTML = `
+                <h4 style="color:#111827; margin-bottom:15px; font-size:1.1rem;">रिपोर्ट: <span style="color:var(--brand); text-transform:uppercase;">"${query}"</span></h4>
+                
+                <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap:wrap;">
+                    <div style="background:white; padding:15px; border-radius:10px; border:1px solid #e5e7eb; flex:1; min-width:120px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                        <small style="color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">कुल ऑर्डर्स</small><br>
+                        <span style="font-size:1.6rem; font-weight:800; color:#059669;">${custOrders.length} <small style="font-size:0.9rem; color:#10b981;">बार</small></span>
+                    </div>
+                    <div style="background:white; padding:15px; border-radius:10px; border:1px solid #e5e7eb; flex:1; min-width:120px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                        <small style="color:#64748b; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">कुल ख़रीदारी</small><br>
+                        <span style="font-size:1.6rem; font-weight:800; color:#ea580c;">₹${totalSpent.toLocaleString('en-IN')}</span>
+                    </div>
+                </div>
+                
+                <div style="background:white; padding:20px; border-radius:10px; border:1px solid #e5e7eb; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                    <p style="margin:0 0 15px 0; font-weight:800; color:#475569; font-size:0.95rem;"><i class="fa fa-shopping-basket"></i> अभी तक क्या-क्या ख़रीदा है (Top Items):</p>
+                    <div>${itemsHtml}</div>
+                </div>
+            `;
+        };
+
+        // 💡 Smart Refill Alerts Logic (Predictive Reordering)
+        window.checkRefillAlerts = () => {
+            let oilPurchases = {}; 
+            const keywords = ['15 kg', '15kg', '15 kilo', '15 liter', '15 ltr', '15 l', 'tin', 'टीन'];
+            
+            ordersData.forEach(o => {
+                const v = o.val;
+                if(v.status === 'Delivered') { 
+                    const items = v.items ? (Array.isArray(v.items) ? v.items : Object.values(v.items)) : [];
+                    let name = 'Guest', phone = '';
+                    if(v.customer) { name = v.customer.name; phone = v.customer.phone; }
+                    else if(v.address && typeof v.address === 'object') { name = v.address.name; phone = v.address.phone; }
+                    else { name = v.name; phone = v.phone; }
+                    
+                    if(!phone) return;
+                    
+                    items.forEach(i => {
+                        if(i.title) {
+                            let t = i.title.toLowerCase();
+                            let isBigOil = (t.includes('oil') || t.includes('tel') || t.includes('तेल') || t.includes('soyabean') || t.includes('mustard') || t.includes('bran')) && keywords.some(kw => t.includes(kw));
+                            
+                            if(isBigOil) {
+                                if(!oilPurchases[phone] || oilPurchases[phone].lastDate < v.timestamp) {
+                                    oilPurchases[phone] = { name: name, phone: phone, lastDate: v.timestamp, itemTitle: i.title };
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+
+            const now = Date.now();
+            const alertsHtml = [];
+            
+            Object.values(oilPurchases).forEach(p => {
+                let daysPassed = Math.floor((now - p.lastDate) / (1000 * 60 * 60 * 24));
+                
+                if(daysPassed >= 60 && daysPassed <= 100) {
+                    let dateStr = new Date(p.lastDate).toLocaleDateString();
+                    let cleanPh = String(p.phone).replace(/\D/g, '').slice(-10);
+                    
+                    let waMsg = encodeURIComponent(`नमस्ते ${p.name} जी! JD Mart (झंकार किराना) से।\n\nपिछली बार ${dateStr} को आपने "${p.itemTitle}" लिया था। लगभग 2 महीने हो गए हैं, शायद तेल खत्म होने वाला है?\n\nअगर आपको नया टीन चाहिए, तो अभी इस मैसेज का रिप्लाई करें या हमारे ऐप से आर्डर करें। फ्री होम डिलीवरी उपलब्ध है! 🚚🛒`);
+                    let waLink = `https://wa.me/91${cleanPh}?text=${waMsg}`;
+                    
+                    alertsHtml.push(`
+                        <tr>
+                            <td><b>${p.name}</b><br><small style="color:#64748b">${p.phone}</small></td>
+                            <td><div style="font-size:0.85rem; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.itemTitle}</div></td>
+                            <td><b style="color:#ea580c;">${daysPassed} दिन पहले</b><br><small style="color:#64748b">${dateStr}</small></td>
+                            <td><a href="${waLink}" target="_blank" class="btn btn-wa" style="padding:5px 10px; font-size:0.8rem;"><i class="fa-brands fa-whatsapp"></i> Reminder</a></td>
+                        </tr>
+                    `);
+                }
+            });
+
+            document.getElementById('refill-alerts-body').innerHTML = alertsHtml.length > 0 ? alertsHtml.join('') : `<tr><td colspan="4" style="text-align:center; padding:20px; color:#10b981; font-weight:700;"><i class="fa fa-check-circle"></i> फिलहाल किसी का तेल खत्म होने का अलर्ट नहीं है।</td></tr>`;
+        };
+
+        // 💡 Category Manual Price List Editor
+        window.loadCategoryProductsForEdit = (categoryName) => {
+            const container = document.getElementById('manual-price-list-container');
+            const rowsBox = document.getElementById('manual-price-rows');
+            
+            const filtered = allProds.filter(p => {
+                let pCats = Array.isArray(p.category) ? p.category : [p.category];
+                return pCats.includes(categoryName);
+            });
+
+            if(filtered.length === 0) {
+                rowsBox.innerHTML = '<p style="text-align:center; padding:10px; color:#94a3b8;">इस कैटेगरी में कोई प्रोडक्ट नहीं है।</p>';
+                container.style.display = 'block';
+                document.getElementById('manual-save-all-btn').style.display = 'none';
+                return;
+            }
+
+            rowsBox.innerHTML = filtered.map(p => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px; margin-bottom:8px; border-radius:6px; border:1px solid var(--border)">
+                    <input type="text" value="${p.title}" id="inline-title-${p.id}" style="flex:1; padding:6px; border:1px solid var(--border); border-radius:4px; font-weight:700; font-size:0.85rem; margin-right:10px;" />
+                    
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; color:#64748b; cursor:pointer; font-weight:bold;">
+                            <input type="checkbox" id="inline-stock-${p.id}" ${p.inStock !== false ? 'checked' : ''} style="width:16px; height:16px; accent-color:var(--brand); cursor:pointer;"> In Stock
+                        </label>
+                        
+                        <span style="font-size:0.8rem; font-weight:600; color:#64748b; border-left:1px solid #ddd; padding-left:8px;">₹</span>
+                        <input type="number" value="${p.price}" id="inline-price-${p.id}" style="width:70px; padding:6px; border:1px solid var(--border); border-radius:4px; font-weight:800; text-align:center;" />
+                        
+                        <button onclick="saveInlinePrice('${p.id}')" style="background:var(--success); color:white; border:none; padding:6px 10px; border-radius:4px; font-size:0.8rem; font-weight:bold; cursor:pointer;"><i class="fa fa-check"></i></button>
+                    </div>
+                </div>
+            `).join('');
+            container.style.display = 'block';
+            document.getElementById('manual-save-all-btn').style.display = 'block';
+        };
+
+        window.saveInlinePrice = (id) => {
+            const newPrice = Number(document.getElementById(`inline-price-${id}`).value);
+            const newTitle = document.getElementById(`inline-title-${id}`).value.trim();
+            const isInStock = document.getElementById(`inline-stock-${id}`).checked;
+
+            if(isNaN(newPrice) || newPrice < 0) return alert("कृपया सही कीमत डालें!");
+            if(!newTitle) return alert("प्रोडक्ट का नाम खाली नहीं हो सकता!");
+            
+            update(ref(db, `products/${id}`), { price: newPrice, title: newTitle, inStock: isInStock }).then(() => {
+                alert("डिटेल्स अपडेट हो गईं! ✅");
+            }).catch(e => alert("Error: " + e.message));
+        };
+
+        // 💡 Save every row in the currently open category list in one click
+        window.saveAllInlinePrices = () => {
+            const rowsBox = document.getElementById('manual-price-rows');
+            const priceInputs = rowsBox.querySelectorAll('input[id^="inline-price-"]');
+            if (priceInputs.length === 0) return;
+
+            const updates = {};
+            let invalid = false;
+
+            priceInputs.forEach(input => {
+                const id = input.id.replace('inline-price-', '');
+                const newPrice = Number(input.value);
+                const newTitle = document.getElementById(`inline-title-${id}`).value.trim();
+                const isInStock = document.getElementById(`inline-stock-${id}`).checked;
+
+                if (isNaN(newPrice) || newPrice < 0 || !newTitle) { invalid = true; return; }
+
+                updates[`products/${id}/price`] = newPrice;
+                updates[`products/${id}/title`] = newTitle;
+                updates[`products/${id}/inStock`] = isInStock;
+            });
+
+            if (invalid) return alert("कुछ फ़ील्ड खाली हैं या कीमत गलत है, कृपया जांच लें!");
+
+            update(ref(db), updates).then(() => {
+                alert(`${priceInputs.length} प्रोडक्ट्स अपडेट हो गए! ✅`);
+            }).catch(e => alert("Error: " + e.message));
+        };
+
+        // ⚡ Bulk % / ₹ price change across all products (or one category) in a single write
+        window.applyBulkPriceUpdate = () => {
+            const scope = document.getElementById('bulk-price-scope').value;
+            const dir = document.getElementById('bulk-price-dir').value; // inc | dec
+            const mode = document.getElementById('bulk-price-mode').value; // pct | flat
+            const value = Number(document.getElementById('bulk-price-value').value);
+
+            if (isNaN(value) || value <= 0) return alert("कृपया सही value डालें!");
+
+            const targets = scope === '__all__'
+                ? allProds
+                : allProds.filter(p => (Array.isArray(p.category) ? p.category : [p.category]).includes(scope));
+
+            if (targets.length === 0) return alert("कोई प्रोडक्ट नहीं मिला!");
+
+            const preview = targets.map(p => {
+                const newPrice = mode === 'pct'
+                    ? Math.round(p.price * (dir === 'inc' ? (1 + value / 100) : (1 - value / 100)))
+                    : Math.round(p.price + (dir === 'inc' ? value : -value));
+                return { id: p.id, newPrice: Math.max(0, newPrice) };
+            });
+
+            const scopeLabel = scope === '__all__' ? 'सभी प्रोडक्ट्स' : `"${scope}" कैटेगरी के`;
+            const dirLabel = dir === 'inc' ? 'बढ़ेंगी' : 'घटेंगी';
+            const valLabel = mode === 'pct' ? `${value}%` : `₹${value}`;
+            const ok = confirm(`${scopeLabel} (${targets.length} प्रोडक्ट्स) की कीमतें ${valLabel} से ${dirLabel}। पक्का करना चाहते हैं?`);
+            if (!ok) return;
+
+            const updates = {};
+            preview.forEach(p => { updates[`products/${p.id}/price`] = p.newPrice; });
+
+            update(ref(db), updates).then(() => {
+                alert(`${preview.length} प्रोडक्ट्स की कीमत अपडेट हो गई! ✅`);
+                document.getElementById('bulk-price-value').value = '';
+            }).catch(e => alert("Error: " + e.message));
+        };
+
+        // POS Fast UI Functions
+        function renderPosGrid(list) { 
+            document.getElementById('pos-grid').innerHTML=list.map(p=>{
+                let imgUrl = cleanUrl(p.image);
+                return `<div class="pos-item" id="pos-item-${p.id}" onclick="addPos('${p.id}')" style="transition:0.2s;"><img src="${imgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400?text=No+Image'"><div style="font-weight:700;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.title}</div><div style="color:var(--brand);font-weight:800">₹${p.price}</div></div>`
+            }).join(''); 
+        }
+        
+        window.addPos = (id) => { 
+            if(posCart[id]) posCart[id].qty++; else posCart[id]={qty:1}; 
+            renderCart(); 
+            const searchBox = document.getElementById('pos-find');
+            if(searchBox.value !== '') { searchBox.value = ''; filterPos(''); }
+            searchBox.focus();
+            
+            const card = document.getElementById(`pos-item-${id}`);
+            if(card) {
+                const oldBg = card.style.background;
+                card.style.background = '#dcfce7'; card.style.transform = 'scale(0.92)';
+                setTimeout(() => { card.style.background = oldBg; card.style.transform = 'scale(1)'; }, 150);
+            }
+        }
+        
+        window.modPos = (id,n) => { posCart[id].qty+=n; if(posCart[id].qty<=0) delete posCart[id]; renderCart(); }
+        
+        window.addPosCustomItem = () => {
+            const name = document.getElementById('pos-custom-name').value.trim();
+            const price = Number(document.getElementById('pos-custom-price').value);
+            const qty = Number(document.getElementById('pos-custom-qty').value) || 1;
+            if (!name || !price) return alert('नाम और price डालें');
+            const key = 'custom_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            posCart[key] = { qty, customTitle: name, customPrice: price };
+            renderCart();
+            document.getElementById('pos-custom-name').value = '';
+            document.getElementById('pos-custom-price').value = '';
+            document.getElementById('pos-custom-qty').value = '1';
+            document.getElementById('pos-custom-box').style.display = 'none';
+        };
+
+        function renderCart() { 
+            let t=0; 
+            document.getElementById('pos-list').innerHTML=Object.entries(posCart).map(([id,i])=>{ 
+                let title, price;
+                if (id.startsWith('custom_')) { title = i.customTitle; price = i.customPrice; }
+                else { const p = allProds.find(x => x.id === id); title = p.title; price = p.price; }
+                t += price * i.qty; 
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;margin-bottom:10px;border-radius:8px;border:1px solid #e5e7eb;background:white;">
+                    <div style="flex:1;">
+                        <b style="font-size:0.95rem;">${title}</b><br>
+                        <small style="color:#64748b;font-weight:600;">₹${price} <span style="font-size:0.7rem">x</span> ${i.qty}</small>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <button class="qty-btn minus" onclick="modPos('${id}',-1)">-</button> 
+                        <span class="qty-val">${i.qty}</span> 
+                        <button class="qty-btn plus" onclick="modPos('${id}',1)">+</button>
+                    </div>
+                </div>`; 
+            }).join(''); 
+            document.getElementById('pos-total').innerText="₹"+t; 
+        }
+        
+        function posCartItems() {
+            return Object.entries(posCart).map(([id, i]) => {
+                if (id.startsWith('custom_')) return { title: i.customTitle, price: i.customPrice, qty: i.qty };
+                const p = allProds.find(x => x.id === id);
+                return { title: p.title, price: p.price, qty: i.qty };
+            });
+        }
+
+        window.printCartOnly = () => { if(Object.keys(posCart).length===0) return alert("Empty"); const items=posCartItems(); const pItems=items.map(it=>`${it.title}::${it.qty}::${it.price}`).join('||'); printInv('EST', document.getElementById('pos-c-name').value||'Walk-in', document.getElementById('pos-c-phone').value||'-', document.getElementById('pos-c-addr').value||'Counter', document.getElementById('pos-total').innerText.replace('₹',''), pItems); }
+        
+        window.posCheckout = () => { 
+            if(Object.keys(posCart).length===0) return alert("Empty"); 
+            const t=document.getElementById('pos-total').innerText.replace('₹',''); 
+            const cName = document.getElementById('pos-c-name').value||'Walk-in Customer'; 
+            const cPhone = document.getElementById('pos-c-phone').value||'-'; 
+            const cAddr = document.getElementById('pos-c-addr').value||'Store Counter';
+            
+            const items=posCartItems(); 
+            const pItems=items.map(it=>`${it.title}::${it.qty}::${it.price}`).join('||'); 
+            
+            push(ref(db, 'orders'), {customer:{name:cName,phone:cPhone,address:cAddr},items,total:Number(t),status:'Delivered',paymentId:'CASH',timestamp:Date.now()}); 
+            printInv('POS', cName, cPhone, cAddr, t, pItems); 
+            
+            posCart={}; renderCart(); 
+            document.getElementById('pos-c-name').value=''; 
+            document.getElementById('pos-c-phone').value=''; 
+            document.getElementById('pos-c-addr').value='';
+            document.getElementById('pos-cust-inputs').style.display = 'none'; 
+        }
+
+        window.printInv = (id, name, phone, address, total, itemStr) => {
+            let rows = '', sub = 0; let waItems = ''; 
+            if (itemStr) itemStr.split('||').forEach(i => {
+                const [nm, q, p] = i.split('::'); const itemTotal = Number(q) * Number(p); sub += itemTotal;
+                rows += `<tr><td style="text-align:left; padding:5px 0; border-bottom:1px dashed #ccc; font-size:12px;"><b>${nm}</b><br><small>${q} x ₹${p}</small></td><td style="text-align:right; padding:5px 0; border-bottom:1px dashed #ccc; font-size:12px; vertical-align:bottom">₹${itemTotal}</td></tr>`;
+                waItems += `• ${nm} (${q}x${p}=₹${itemTotal})\n`;
+            });
+
+            let delCharge = Math.round(Number(total) - sub); let delText = delCharge > 0 ? `₹${delCharge}` : "Free";
+            const shareMessage = encodeURIComponent(`*JD MART - Digital Receipt*\n--------------------------\nOrder ID: #${id.slice(-5).toUpperCase()}\nCustomer: ${name}\n--------------------------\n${waItems}--------------------------\nItem Total: ₹${sub}\nDelivery: ${delText}\n*GRAND TOTAL: ₹${total}*\n--------------------------\nThank you for shopping!`);
+            const cleanPh = String(phone).replace(/\D/g, '').slice(-10);
+            const waLink = `https://wa.me/91${cleanPh}?text=${shareMessage}`;
+
+            const billHtml = `
+                <div style="text-align:center; margin-bottom:10px;">
+                    <h3 style="margin:0; font-size:18px; color:#111827;">JD MART</h3>
+                    <p style="margin:2px 0; font-size:11px; color:#64748b;">Jhankar Kirana, Sohpur<br>Mob: 6268735944</p>
+                </div>
+                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <div style="font-size:12px; line-height:1.5; color:#000;">
+                    <b>ID:</b> #${id.slice(-5).toUpperCase()}<br>
+                    <b>Date:</b> ${new Date().toLocaleDateString()}<br>
+                    <b>Cust:</b> ${name}
+                </div>
+                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <table style="width:100%; border-collapse:collapse; color:#000;">${rows}</table>
+                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <div style="font-size:12px; line-height:1.6; color:#000;">
+                    <div style="display:flex; justify-content:space-between;"><span>Items:</span><span>₹${sub}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Delivery:</span><span>${delText}</span></div>
+                    <div style="display:flex; justify-content:space-between; font-size:15px; font-weight:bold; margin-top:5px; border-top:1px dashed #000; padding-top:5px;"><span>TOTAL:</span><span>₹${total}</span></div>
+                </div>
+                <div style="text-align:center; font-size:11px; color:#64748b; margin-top:15px;">*** Thank You ***</div>
+            `;
+
+            document.getElementById('receipt-content').innerHTML = billHtml;
+            document.getElementById('receipt-wa-btn').href = waLink;
+            document.getElementById('receipt-mod').style.display = 'flex';
+        }
+
+        window.triggerPrint = () => {
+    const printContent = document.getElementById('receipt-content').innerHTML;
+    const printWindow = window.open('', '_blank', 'width=300,height=600');
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <style>
+                @page { margin: 0; size: 80mm auto; }
+                body { 
+                    font-family: 'Courier New', Courier, monospace; 
+                    width: 76mm; /* थर्मल पेपर की चौड़ाई */
+                    padding: 5px; 
+                    color: #000; 
+                }
+                table { width: 100%; border-collapse: collapse; }
+                /* यहाँ बटन को प्रिंट में छिपाना ज़रूरी है */
+                .btn, #receipt-wa-btn, .modal-bg { display: none !important; }
+            </style>
+        </head>
+        <body>${printContent}</body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+};
+
+        window.searchTable=(t,v)=>{document.querySelectorAll(`#${t} tr`).forEach(r=>r.style.display=r.innerText.toLowerCase().includes(v.toLowerCase())?'':'none')};
+        window.filterGrid=(g,v)=>{document.querySelectorAll(`#${g} .prod-card`).forEach(b=>b.style.display=b.innerText.toLowerCase().includes(v.toLowerCase())?'block':'none')};
+        window.filterPos=(v)=>renderPosGrid(allProds.filter(p=>p.title.toLowerCase().includes(v.toLowerCase())));
+        
+        window.nav=(id)=>{
+            document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('pg-title').innerText=id.toUpperCase();
+            document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            if(window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('open'); }
+        };
+
+        window.openModal=(id)=>{
+            if(id==='prod-mod' && document.getElementById('pm-id').value==="") { document.getElementById('pm-nm').value=''; document.getElementById('pm-pr').value=''; document.getElementById('pm-order').value=''; document.getElementById('pm-img-link').value=''; document.getElementById('pm-file').value=''; document.getElementById('pm-file-text').innerText="Click to Select Gallery Image"; document.querySelectorAll('.cat-check').forEach(c=>c.checked=false); document.getElementById('pm-head').innerText="Add Product"; document.getElementById('pm-has-variants').checked=false; document.getElementById('pm-variant-box').style.display='none'; document.getElementById('pm-variant-rows').innerHTML=''; }
+            if(id==='cat-mod' && document.getElementById('cm-id').value==="") { document.getElementById('cm-nm').value=''; document.getElementById('cm-order').value=''; document.getElementById('cm-img-link').value=''; document.getElementById('cm-file').value=''; document.getElementById('cm-file-text').innerText="Click to Select Gallery Image"; }
+            if(id==='ban-mod') { document.getElementById('bm-img-link').value=''; document.getElementById('bm-file').value=''; document.getElementById('bm-file-text').innerText="Click to Select Banner Image"; }
+            document.getElementById(id).style.display='flex';
+        }
+        window.closeModal=(id)=>{
+            document.getElementById(id).style.display='none'; 
+            if(id==='prod-mod'){document.getElementById('pm-id').value='';document.getElementById('pm-old').value='';} 
+            if(id==='cat-mod'){document.getElementById('cm-id').value=''; document.getElementById('cm-old').value='';}
+        }
+    </script>
+</body>
+</html>
