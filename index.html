@@ -75,6 +75,33 @@
             align-items: center; 
             gap: 8px; 
         }
+
+        .brand-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+
+        .brand-logo { 
+            width: 38px; 
+            height: 38px; 
+            border-radius: 10px; 
+            object-fit: cover; 
+            flex-shrink: 0; 
+        }
+
+        .brand-address { 
+            font-size: 0.7rem; 
+            color: var(--text-light); 
+            max-width: 190px; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 4px; 
+        }
         
         .profile-btn { 
             width: 40px; 
@@ -413,6 +440,26 @@
             color: var(--text-main); 
             margin-bottom: 10px; 
             flex: 1; 
+            display: flex; 
+            align-items: baseline; 
+            gap: 6px; 
+            flex-wrap: wrap; 
+        }
+
+        .prod-mrp { 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            color: var(--text-light); 
+            text-decoration: line-through; 
+        }
+
+        .prod-discount { 
+            font-size: 0.72rem; 
+            font-weight: 700; 
+            color: #15803d; 
+            background: #dcfce7; 
+            padding: 1px 6px; 
+            border-radius: 5px; 
         }
         
         .variant-select { 
@@ -787,7 +834,41 @@
         #confirm-order-btn:disabled { opacity: 0.45; cursor: not-allowed; }
         #addr-hint { font-size: 0.8rem; color: #dc2626; text-align: center; margin-bottom: 8px; min-height: 1.1em; }
 
-        .success-tick { width: 80px; height: 80px; border-radius: 50%; background: #dcfce7; color: #15803d; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 20px; animation: popIn 0.4s ease; }
+        .success-banner { 
+            width: calc(100% + 50px); 
+            margin: -25px -25px 20px; 
+            padding: 40px 20px 30px; 
+            background: linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 100%); 
+            border-radius: 24px 24px 0 0; 
+        }
+
+        .success-tick-circle { 
+            width: 110px; 
+            height: 110px; 
+            margin: 0 auto; 
+            border-radius: 50%; 
+            background: rgba(255,255,255,0.15); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            animation: circlePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+
+        .success-tick-circle svg { width: 60px; height: 60px; }
+
+        .success-tick-circle .tick-path { 
+            stroke-dasharray: 48; 
+            stroke-dashoffset: 48; 
+            animation: drawTick 0.4s 0.35s ease forwards; 
+        }
+
+        @keyframes circlePop { 
+            0% { transform: scale(0); opacity: 0; } 
+            60% { transform: scale(1.1); opacity: 1; } 
+            100% { transform: scale(1); } 
+        }
+
+        @keyframes drawTick { to { stroke-dashoffset: 0; } }
         @keyframes popIn { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
         .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
@@ -830,7 +911,13 @@
         <!-- ===================== HEADER ===================== -->
         <div class="header">
             <div class="top-row">
-                <div class="brand"><i class="fa-solid fa-cart-shopping"></i> JD Mart</div>
+                <div class="brand-row">
+                    <img src="icon-192.png" alt="JD Mart" class="brand-logo" onerror="this.style.display='none'">
+                    <div>
+                        <div class="brand">JD Mart</div>
+                        <div class="brand-address" id="brand-address" style="display:none;" onclick="openModal('auth-modal')"></div>
+                    </div>
+                </div>
                 <div style="display:flex; align-items:center;">
                     <button id="install-btn" class="install-btn"><i class="fa-solid fa-download"></i> Install</button>
                     <div class="profile-btn" id="profile-btn" onclick="openModal('dashboard-modal')"><i class="fa-solid fa-user"></i><span class="profile-dot" id="profile-dot"></span></div>
@@ -954,8 +1041,14 @@
 
     <!-- ===================== ORDER SUCCESS MODAL ===================== -->
     <div id="success-modal" class="modal-overlay">
-        <div class="modal-box" style="text-align: center;">
-            <div class="success-tick"><i class="fa-solid fa-check"></i></div>
+        <div class="modal-box" style="text-align: center; padding-top: 0; overflow: hidden;">
+            <div class="success-banner">
+                <div class="success-tick-circle">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path class="tick-path" d="M4 12.5L9.5 18L20 6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
             <h2 style="margin-bottom: 8px;">Order Placed!</h2>
             <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 5px;">Order ID: <b id="success-order-id">-</b></p>
             <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 20px;">Aapka order successfully place ho gaya hai. Hum jaldi hi delivery ke liye contact karenge.</p>
@@ -1018,7 +1111,7 @@
         const TELEGRAM_CHAT_ID = '1105786668';
 
         function sendTelegramNotification(order, orderId) {
-            const itemsText = order.items.map(i => `• ${i.title} x${i.qty} — ₹${i.price * i.qty}`).join('\n');
+            const itemsText = order.items.map((i, idx) => `${idx + 1}. ${i.title} x${i.qty} — ₹${i.price * i.qty}`).join('\n');
             const message =
                 `🛒 New Order Received!\n\n` +
                 `🆔 Order: #${orderId}\n` +
@@ -1101,6 +1194,9 @@
                 ordersData = Object.entries(d).map(([k, v]) => ({ key: k, ...v })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
                 checkOrderStatusChanges();
                 if (document.getElementById('orders-modal').style.display === 'flex') renderOrders();
+            }, (err) => {
+                console.error('Orders could not be read — check Firebase Database Rules:', err);
+                showToast('Could not load orders, please check your connection');
             });
         }
         init();
@@ -1251,6 +1347,13 @@
             const imgUrl = cleanUrl(p.image);
             const displayPrice = hasVariants ? p.variants[selIdx].price : (p.price || 0);
 
+            // MRP only applies to non-variant products (variants carry their own pricing)
+            const mrp = (!hasVariants && p.mrp && p.mrp > displayPrice) ? p.mrp : null;
+            const discountPct = mrp ? Math.round(((mrp - displayPrice) / mrp) * 100) : null;
+            const priceBlock = mrp
+                ? `<div class="prod-price">₹${displayPrice} <span class="prod-mrp">₹${mrp}</span> <span class="prod-discount">${discountPct}% off</span></div>`
+                : `<div class="prod-price">₹${displayPrice}</div>`;
+
             const control = outOfStock
                 ? `<button class="add-btn" disabled style="opacity:0.5; cursor:not-allowed;">OUT OF STOCK</button>`
                 : (qty > 0
@@ -1271,7 +1374,7 @@
                 <div class="prod-details">
                     <div class="prod-title">${p.title || ''}</div>
                     ${variantSelect}
-                    <div class="prod-price">₹${displayPrice}</div>
+                    ${priceBlock}
                     ${control}
                 </div>
             </div>`;
@@ -1555,6 +1658,23 @@
                     refObj.key.slice(-6).toUpperCase()
                 );
 
+                // Add the new order to the local list right away — the Firebase
+                // 'orders' listener may take a moment to round-trip, and without
+                // this, "My Orders" can briefly appear to not show a just-placed order.
+                const newOrderKey = refObj.key;
+                if (!ordersData.some(o => o.key === newOrderKey)) {
+                    ordersData.unshift({
+                        key: newOrderKey,
+                        customer: { name, phone, address: fullAddress },
+                        items,
+                        total,
+                        status: 'Placed',
+                        paymentId: 'COD',
+                        timestamp: Date.now()
+                    });
+                }
+                orderStatusMap[newOrderKey] = 'Placed';
+
                 cart = {};
                 saveCart();
                 renderProducts();
@@ -1593,6 +1713,15 @@
             if (customer) {
                 document.getElementById('auth-name').value = customer.name || '';
                 document.getElementById('auth-phone').value = customer.phone || '';
+            }
+
+            const addrEl = document.getElementById('brand-address');
+            if (customer && customer.address) {
+                const full = customer.village ? `${customer.address}, ${customer.village}` : customer.address;
+                addrEl.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${full}`;
+                addrEl.style.display = 'flex';
+            } else {
+                addrEl.style.display = 'none';
             }
         }
 
